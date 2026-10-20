@@ -17,9 +17,14 @@ func _run_tests() -> void:
     var world := main.get("world") as Node3D
     if not is_instance_valid(player) or not is_instance_valid(world):
         _check(false, "player and 3D apartment initialized")
-        quit(1)
+        await _cleanup_and_quit(main, 1)
         return
     _check(world.get_node_or_null("FollowCamera") is Camera3D, "follow camera exists")
+    var exit_target := world.get_node_or_null("ExitInteraction") as Node3D
+    if not is_instance_valid(exit_target):
+        _check(false, "exit interaction exists")
+        await _cleanup_and_quit(main, 1)
+        return
 
     var hud := main.get("hud") as CanvasLayer
     main.set("time_left", 180.0)
@@ -74,6 +79,17 @@ func _run_tests() -> void:
     main.call("_skip_cutscene")
     _check(not bool(main.get("cutscene_playing")), "opening cinematic can be skipped")
     await process_frame
+    main.call("_toggle_pause")
+    _check(bool(main.get("paused")), "pause freezes the shift")
+    main.call("_resume_game")
+    _check(not bool(main.get("paused")), "resume restores the shift")
+
+    player.global_position = exit_target.global_position
+    main.call("_on_action_pressed")
+    _check(not bool(main.get("ended")), "exit is blocked until objectives are complete")
+    player.global_position = dirt[0].global_position
+    main.call("_on_action_pressed")
+    _check(int(main.get("dirt_remaining")) == 7, "cleaning is blocked until all valuables are found")
 
     for item in loot:
         player.global_position = item.global_position
@@ -85,27 +101,45 @@ func _run_tests() -> void:
         main.call("_on_action_pressed")
     _check(int(main.get("dirt_remaining")) == 0, "all seven stains can be cleaned")
 
-    var exit_target := world.get_node_or_null("ExitInteraction") as Node3D
-    if not is_instance_valid(exit_target):
-        _check(false, "exit interaction exists")
-        quit(1)
-        return
     _check(bool(exit_target.get_meta("unlocked", false)), "exit unlocks when the apartment is clean")
     await process_frame
     player.global_position = exit_target.global_position
     main.call("_on_action_pressed")
     _check(bool(main.get("ended")), "using the exit finishes the shift")
 
+    # Verify loss paths without allowing them to interfere with the full win flow.
+    main.set("ended", false)
+    main.set("call_shown", true)
+    main.set("time_left", 0.25)
+    main.set("alert_level", 0.0)
+    main.set("_camera_visible", false)
+    main.set("_camera_scan_elapsed", 0.0)
+    main.call("_process", 1.0)
+    _check(bool(main.get("ended")), "running out of time ends the shift")
+
+    main.set("ended", false)
+    main.set("time_left", 120.0)
+    main.set("alert_level", 99.0)
+    main.set("_camera_visible", true)
+    main.set("_camera_scan_elapsed", -10.0)
+    main.call("_process", 0.2)
+    _check(bool(main.get("ended")), "maximum camera alert ends the shift")
+
     var exit_code := 0
     if failures == 0:
-        print("PASS: full gameplay loop completed in headless test.")
+        print("PASS: full gameplay, pause, phone and failure regression tests completed.")
     else:
         push_error("%d gameplay smoke test(s) failed." % failures)
         exit_code = 1
+    await _cleanup_and_quit(main, exit_code)
+    return
+
+func _cleanup_and_quit(main_scene: Node, exit_code: int) -> void:
     current_scene = null
-    main.queue_free()
+    if is_instance_valid(main_scene):
+        main_scene.queue_free()
     await process_frame
-    quit(exit_code)
+    call_deferred("quit", exit_code)
 
 func _check(condition: bool, label: String) -> void:
     if condition:
