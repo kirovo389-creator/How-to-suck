@@ -2,6 +2,7 @@ extends CanvasLayer
 
 signal action_pressed
 signal crouch_pressed
+signal sprint_pressed
 signal location_selected(location_id: String)
 signal movement_changed(direction: Vector2)
 signal call_answered
@@ -18,6 +19,8 @@ var _toast_label: Label
 var _action_button: Button
 var _alert_bar: ProgressBar
 var _alert_fill: StyleBoxFlat
+var _stamina_bar: ProgressBar
+var _stamina_fill: StyleBoxFlat
 var _joy: Control
 var _move_vec := Vector2.ZERO
 var _touch_index: int = -1
@@ -75,7 +78,7 @@ func _build_hud() -> void:
     top_panel.offset_left = 18.0
     top_panel.offset_top = 18.0
     top_panel.offset_right = 478.0
-    top_panel.offset_bottom = 166.0
+    top_panel.offset_bottom = 205.0
     _style_panel(top_panel, Color(0.018, 0.035, 0.055, 0.91), Color(0.16, 0.45, 0.55))
     _root.add_child(top_panel)
     var column := VBoxContainer.new()
@@ -123,6 +126,27 @@ func _build_hud() -> void:
     _alert_bar.add_theme_stylebox_override("background", track)
     _alert_bar.add_theme_stylebox_override("fill", _alert_fill)
     column.add_child(_alert_bar)
+    var stamina_caption := Label.new()
+    stamina_caption.text = "ВЫНОСЛИВОСТЬ / СПРИНТ"
+    stamina_caption.add_theme_font_size_override("font_size", 11)
+    stamina_caption.add_theme_color_override("font_color", Color(0.72, 0.77, 0.83))
+    column.add_child(stamina_caption)
+    _stamina_bar = ProgressBar.new()
+    _stamina_bar.name = "StaminaBar"
+    _stamina_bar.custom_minimum_size = Vector2(0.0, 10.0)
+    _stamina_bar.min_value = 0.0
+    _stamina_bar.max_value = 100.0
+    _stamina_bar.value = 100.0
+    _stamina_bar.show_percentage = false
+    _stamina_bar.add_theme_stylebox_override("background", track)
+    _stamina_fill = StyleBoxFlat.new()
+    _stamina_fill.bg_color = Color(0.2, 0.68, 0.82)
+    _stamina_fill.corner_radius_top_left = 5
+    _stamina_fill.corner_radius_top_right = 5
+    _stamina_fill.corner_radius_bottom_left = 5
+    _stamina_fill.corner_radius_bottom_right = 5
+    _stamina_bar.add_theme_stylebox_override("fill", _stamina_fill)
+    column.add_child(_stamina_bar)
     var toast := Label.new()
     toast.name = "Toast"
     toast.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
@@ -187,6 +211,18 @@ func _build_hud() -> void:
     _style_button(crouch_button, Color(0.17, 0.27, 0.34), Color(0.24, 0.39, 0.46))
     crouch_button.pressed.connect(func(): crouch_pressed.emit())
     _root.add_child(crouch_button)
+    var sprint_button := Button.new()
+    sprint_button.name = "SprintButton"
+    sprint_button.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+    sprint_button.offset_left = -216.0
+    sprint_button.offset_top = -234.0
+    sprint_button.offset_right = -22.0
+    sprint_button.offset_bottom = -184.0
+    sprint_button.text = "СПРИНТ"
+    sprint_button.add_theme_font_size_override("font_size", 16)
+    _style_button(sprint_button, Color(0.1, 0.31, 0.4), Color(0.15, 0.48, 0.58))
+    sprint_button.pressed.connect(func(): sprint_pressed.emit())
+    _root.add_child(sprint_button)
     var pause_button := Button.new()
     pause_button.name = "PauseButton"
     pause_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
@@ -557,6 +593,28 @@ func set_crouch_state(enabled: bool) -> void:
         _style_button(button, Color(0.48, 0.29, 0.12), Color(0.62, 0.38, 0.15))
     else:
         _style_button(button, Color(0.17, 0.27, 0.34), Color(0.24, 0.39, 0.46))
+
+func set_sprint_state(enabled: bool) -> void:
+    var button := _root.get_node_or_null("SprintButton") as Button
+    if not is_instance_valid(button):
+        return
+    button.text = "СПРИНТ: ВКЛ" if enabled else "СПРИНТ"
+    if enabled:
+        _style_button(button, Color(0.12, 0.45, 0.58), Color(0.16, 0.62, 0.72))
+    else:
+        _style_button(button, Color(0.1, 0.31, 0.4), Color(0.15, 0.48, 0.58))
+
+func update_stamina(value: float, sprinting: bool) -> void:
+    if not is_instance_valid(_stamina_bar) or not is_instance_valid(_stamina_fill):
+        return
+    _stamina_bar.value = clampf(value, 0.0, 100.0)
+    if value < 22.0:
+        _stamina_fill.bg_color = Color(0.9, 0.31, 0.17)
+    elif sprinting:
+        _stamina_fill.bg_color = Color(0.2, 0.78, 0.92)
+    else:
+        _stamina_fill.bg_color = Color(0.2, 0.68, 0.82)
+    _stamina_bar.queue_redraw()
 
 func toast(message: String) -> void:
     _toast_label.text = message

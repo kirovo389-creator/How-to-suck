@@ -10,6 +10,8 @@ var _interaction_elapsed: float = -1.0
 var _interaction_kind: String = ""
 var _rest_arm_rotations: Array[Vector3] = []
 var is_crouching: bool = false
+var is_sprinting: bool = false
+var is_moving: bool = false
 var _standing_speed: float = 4.0
 var _visual_root: Node3D
 var _collider: CollisionShape3D
@@ -34,10 +36,24 @@ func set_mobile_direction(direction: Vector2) -> void:
 
 func set_crouching(enabled: bool) -> void:
     is_crouching = enabled
-    move_speed = _standing_speed * 0.58 if enabled else _standing_speed
+    if enabled:
+        is_sprinting = false
+    _refresh_move_speed()
     if is_instance_valid(_visual_root):
         _visual_root.scale.y = 0.72 if enabled else 1.0
     call_deferred("_apply_crouch_collision", enabled)
+
+func set_sprinting(enabled: bool) -> void:
+    is_sprinting = enabled and not is_crouching
+    _refresh_move_speed()
+
+func _refresh_move_speed() -> void:
+    if is_crouching:
+        move_speed = _standing_speed * 0.58
+    elif is_sprinting:
+        move_speed = _standing_speed * 1.65
+    else:
+        move_speed = _standing_speed
 
 func _apply_crouch_collision(enabled: bool) -> void:
     if not is_instance_valid(_capsule) or not is_instance_valid(_collider):
@@ -56,7 +72,8 @@ func _physics_process(delta: float) -> void:
     velocity.z = direction.y * move_speed
     velocity.y = 0.0
     move_and_slide()
-    var moving := direction.length() > 0.05
+    is_moving = direction.length() > 0.05
+    var moving := is_moving
     if moving:
         rotation.y = lerp_angle(rotation.y, atan2(direction.x, direction.y), delta * 11.0)
     _animation_time += delta * (9.2 if moving else 2.2)

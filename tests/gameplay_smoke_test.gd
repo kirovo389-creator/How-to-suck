@@ -198,6 +198,37 @@ func _run_tests() -> void:
     main.call("_skip_cutscene")
     _check(not bool(main.get("cutscene_playing")), "opening cinematic can be skipped")
     _check(player.is_physics_processing(), "player controls unlock after opening cinematic")
+    player.global_position = Vector3(-7.0, 0.0, 0.0)
+    player.set_mobile_direction(Vector2.RIGHT)
+    main.call("_toggle_sprint")
+    _check(bool(player.get("is_sprinting")), "sprint toggles on")
+    _check(float(player.get("move_speed")) > 4.0, "sprint increases player speed")
+    await physics_frame
+    var stamina_bar := hud_root.get_node("MissionHUD/VBoxContainer/StaminaBar") as ProgressBar
+    if not is_instance_valid(stamina_bar):
+        stamina_bar = hud_root.find_child("StaminaBar", true, false) as ProgressBar
+    var stamina_before_sprint: float = float(main.get("stamina"))
+    main.call("_process", 0.25)
+    _check(float(main.get("stamina")) < stamina_before_sprint, "moving while sprinting drains stamina")
+    _check(is_instance_valid(stamina_bar) and is_equal_approx(stamina_bar.value, float(main.get("stamina"))),
+        "stamina bar mirrors gameplay stamina")
+    main.set("stamina", 5.0)
+    main.set("_stamina_regen_delay", 0.0)
+    main.call("_process", 0.25)
+    _check(not bool(player.get("is_sprinting")), "empty stamina automatically stops sprinting")
+    player.set_mobile_direction(Vector2.ZERO)
+    await physics_frame
+    main.set("stamina", 100.0)
+    main.set("_stamina_regen_delay", 0.0)
+    main.call("_toggle_sprint")
+    _check(bool(player.get("is_sprinting")), "sprint can be enabled again after recovery")
+    main.call("_toggle_crouch")
+    await process_frame
+    _check(bool(player.get("is_crouching")), "crouching can be enabled")
+    _check(not bool(player.get("is_sprinting")), "crouching cancels sprinting")
+    main.call("_toggle_crouch")
+    await process_frame
+    _check(not bool(player.get("is_crouching")), "standing restores normal movement")
     main.call("_toggle_crouch")
     await process_frame
     _check(bool(player.get("is_crouching")), "crouch mode can be enabled")

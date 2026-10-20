@@ -77,6 +77,12 @@ require('func _toggle_crouch()' in game and 'signal crouch_pressed' in hud and
         'call_deferred("_apply_crouch_collision", enabled)' in player and
         'var target_height := 0.42 if bool(target.get("is_crouching")) else 0.82' in camera,
         "Crouching has a mobile control, safe collision update and reduced camera detection")
+require('func _toggle_sprint()' in game and 'func _update_stamina(delta: float)' in game and
+        'signal sprint_pressed' in hud and 'name = "SprintButton"' in hud and
+        'func update_stamina(value: float, sprinting: bool)' in hud and
+        'func set_sprinting(enabled: bool)' in player and
+        'alert_gain *= 1.6' in game,
+        "Sprint includes mobile input, stamina depletion/recovery UI and higher camera alert gain")
 require('func play_interaction(kind: String)' in player and
         'func _update_interaction_animation(delta: float)' in player and
         'player.call("play_interaction", "loot")' in game and

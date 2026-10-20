@@ -25,6 +25,9 @@ var loot_total: int = 5
 var dirt_remaining: int = 7
 var time_left: float = 240.0
 var alert_level: float = 0.0
+var stamina: float = 100.0
+var sprint_enabled: bool = false
+var _stamina_regen_delay: float = 0.0
 var shift_started: bool = false
 var paused: bool = false
 var cutscene_playing: bool = false
@@ -62,6 +65,7 @@ func _ready() -> void:
     add_child(hud)
     hud.action_pressed.connect(_on_action_pressed)
     hud.crouch_pressed.connect(_toggle_crouch)
+    hud.sprint_pressed.connect(_toggle_sprint)
     hud.location_selected.connect(_select_level)
     hud.cutscene_skipped.connect(_skip_cutscene)
     hud.movement_changed.connect(player.set_mobile_direction)
@@ -133,6 +137,7 @@ func _process(delta: float) -> void:
         return
     time_left -= delta
     call_elapsed += delta
+    _update_stamina(delta)
     # A phone dialogue locks movement and its overlay covers the joystick, so do not
     # punish the player for being unable to walk out of a camera's view during a call.
     if not call_active:
@@ -141,7 +146,10 @@ func _process(delta: float) -> void:
             _camera_scan_elapsed = 0.0
             _scan_security_cameras()
         if _camera_visible:
-            alert_level = minf(100.0, alert_level + (12.0 + float(loot_found) * 1.6) * delta)
+            var alert_gain: float = 12.0 + float(loot_found) * 1.6
+            if bool(player.get("is_sprinting")) and bool(player.get("is_moving")):
+                alert_gain *= 1.6
+            alert_level = minf(100.0, alert_level + alert_gain * delta)
         else:
             alert_level = maxf(0.0, alert_level - 8.0 * delta)
         if alert_level >= 32.0 and not _camera_warning_shown:
@@ -177,6 +185,25 @@ func _process(delta: float) -> void:
         _status_elapsed = 0.0
         _refresh_status()
         _refresh_action_hint()
+
+func _update_stamina(delta: float) -> void:
+    if not is_instance_valid(player):
+        return
+    var sprinting_and_moving: bool = sprint_enabled and bool(player.get("is_sprinting")) and bool(player.get("is_moving"))
+    if sprinting_and_moving:
+        stamina = maxf(0.0, stamina - 34.0 * delta)
+        _stamina_regen_delay = 0.65
+        if stamina <= 0.0:
+            sprint_enabled = false
+            player.call("set_sprinting", false)
+            hud.call("set_sprint_state", false)
+            hud.toast("Выносливость закончилась — передохни, прежде чем снова бежать.")
+    else:
+        _stamina_regen_delay = maxf(0.0, _stamina_regen_delay - delta)
+        if _stamina_regen_delay <= 0.0:
+            stamina = minf(100.0, stamina + 22.0 * delta)
+    if is_instance_valid(hud):
+        hud.call("update_stamina", stamina, sprint_enabled)
 
 func _lighting() -> void:
     var world_environment := WorldEnvironment.new()
@@ -276,9 +303,32 @@ func _toggle_crouch() -> void:
         return
     var crouching := not bool(player.get("is_crouching"))
     player.call("set_crouching", crouching)
+    if crouching and sprint_enabled:
+        sprint_enabled = false
+        hud.call("set_sprint_state", false)
     hud.call("set_crouch_state", crouching)
     hud.toast("Ты присел: двигайся медленнее, камера замечает тебя ниже." if crouching else "Ты встал.")
     _play_sound("click")
+
+func _toggle_sprint() -> void:
+    if not shift_started or ended or paused or call_active or cutscene_playing:
+        return
+    if bool(player.get("is_crouching")):
+        hud.toast("Встань, чтобы включить спринт.")
+        _play_sound("click")
+        return
+    if sprint_enabled:
+        sprint_enabled = false
+    else:
+        if stamina < 12.0:
+            hud.toast("Выносливость почти закончилась — сначала передохни.")
+            return
+        sprint_enabled = true
+    player.call("set_sprinting", sprint_enabled)
+    hud.call("set_sprint_state", sprint_enabled)
+    hud.toast("Спринт быстрее, но камеры накапливают тревогу быстрее." if sprint_enabled else "Спринт выключен.")
+    _play_sound("click")
+    hud.call("update_stamina", stamina, sprint_enabled)
 
 func _on_action_pressed() -> void:
     if ended or paused or call_active or cutscene_playing:
@@ -288,7 +338,7 @@ func _on_action_pressed() -> void:
         cutscene_playing = true
         cutscene_elapsed = 0.0
         player.set_mobile_direction(Vector2.ZERO)
-        player.set_physics_process(false)
+        _sync_player_processing()
         hud.hide_intro()
         hud.show_cutscene("01:13 — Магазин закрылся. У тебя четыре минуты: найди ценности, убери разливы и выйди до возвращения управляющего." if level_id == "store" else "01:13 — Хозяева уехали. У тебя четыре минуты: забери ценности, убери следы и выйди до их возвращения.")
         var follow_camera: Node = world.get_node_or_null("FollowCamera")
@@ -411,7 +461,7 @@ func _toggle_pause() -> void:
     else:
         paused = true
         player.set_mobile_direction(Vector2.ZERO)
-        player.set_physics_process(false)
+        _sync_player_processing()
         if is_instance_valid(world):
             _world_process_mode_before_pause = world.process_mode
             world.process_mode = Node.PROCESS_MODE_DISABLED
@@ -437,6 +487,15 @@ func _sync_player_processing() -> void:
     if not is_instance_valid(player):
         return
     var controls_allowed: bool = shift_started and not paused and not call_active and not cutscene_playing and not ended and not _ending_cutscene_active
+    if not controls_allowed:
+        player.set_mobile_direction(Vector2.ZERO)
+        player.set("is_moving", false)
+        if sprint_enabled or bool(player.get("is_sprinting")):
+            sprint_enabled = false
+            player.call("set_sprinting", false)
+            if is_instance_valid(hud):
+                hud.call("set_sprint_state", false)
+                hud.call("update_stamina", stamina, false)
     player.set_physics_process(controls_allowed)
 
 func _restart_game() -> void:
@@ -489,6 +548,7 @@ func _finish(success: bool, heading: String, message: String) -> void:
 func _refresh_status() -> void:
     if is_instance_valid(hud):
         hud.update_status(loot_found, loot_total, dirt_remaining, int(maxf(0.0, time_left)), alert_level, shift_started)
+        hud.call("update_stamina", stamina, sprint_enabled)
 
 func _play_sound(sound_name: String) -> void:
     if not is_instance_valid(sfx):
