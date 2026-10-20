@@ -60,8 +60,8 @@ require('GODOT_ANDROID_KEYSTORE_DEBUG_PATH:' in workflow and
 require('name: Verify APK archive and native library' in workflow and
         workflow.index('name: Verify APK archive and native library') > workflow.index('name: Export APK'),
         "APK integrity and ARM64 native library are checked before upload")
-require('branches: [main]' in workflow and 'workflow_dispatch:' in workflow,
-        "APK publishing workflow only runs on main or explicit manual dispatch")
+require('branches: [main, game-completion]' in workflow and 'workflow_dispatch:' in workflow,
+        "APK publishing workflow runs on main, the validated game branch and manual dispatch")
 require('name: Run headless game smoke test' in workflow and
         workflow.index('name: Run headless game smoke test') < workflow.index('name: Export APK'),
         "Runtime smoke test is scheduled before APK export")
