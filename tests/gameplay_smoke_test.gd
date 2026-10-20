@@ -205,6 +205,13 @@ func _run_tests() -> void:
         "standing restores the character visuals")
     _check(is_equal_approx((player_collider.shape as CapsuleShape3D).height, 1.58),
         "standing restores the physical collision capsule")
+    main.set("call_active", true)
+    hud.call("show_call", "Проверка паузы во время звонка")
+    main.call("_toggle_pause")
+    main.call("_resume_game")
+    _check(not player.is_physics_processing(), "resume during phone call keeps player controls locked")
+    main.call("_answer_call")
+    _check(player.is_physics_processing(), "answering phone restores player controls")
     await process_frame
     var tween_probe := Node3D.new()
     tween_probe.name = "PauseTweenProbe"
