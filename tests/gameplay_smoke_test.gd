@@ -205,6 +205,8 @@ func _run_tests() -> void:
     _check(bool(player.get("is_sprinting")), "sprint toggles on")
     _check(float(player.get("move_speed")) > 4.0, "sprint increases player speed")
     await physics_frame
+    await physics_frame
+    _check(bool(player.get("is_moving")), "player movement state updates before sprint stamina is measured")
     var stamina_bar := hud_root.find_child("StaminaBar", true, false) as ProgressBar
     var stamina_before_sprint: float = float(main.get("stamina"))
     main.call("_process", 0.25)
