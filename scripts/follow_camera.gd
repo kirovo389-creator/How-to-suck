@@ -16,6 +16,15 @@ var _cutscene_bedroom: Vector3
 func _ready() -> void:
     target = _find_target()
 
+func set_target(target_node: Node3D) -> void:
+    if not is_instance_valid(target_node):
+        return
+    target = target_node
+    _cutscene_active = false
+    global_position = target.global_position + Vector3(0.0, 10.0, 11.0)
+    look_at(target.global_position + Vector3(0.0, 0.8, 0.0), Vector3.UP)
+    make_current()
+
 func play_opening_cutscene() -> void:
     _cutscene_style = 0
     target = _find_target()

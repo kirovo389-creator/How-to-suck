@@ -60,6 +60,10 @@ func _ready() -> void:
     player.name = "Player"
     player.position = Vector3(0.0, 0.0, 2.8)
     add_child(player)
+    var startup_camera := world.get_node_or_null("FollowCamera") as Camera3D
+    if is_instance_valid(startup_camera):
+        startup_camera.call("set_target", player)
+        startup_camera.make_current()
     player.set_physics_process(false)
     hud = HudScene.instantiate()
     add_child(hud)

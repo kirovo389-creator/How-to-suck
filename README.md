@@ -40,3 +40,8 @@ All 3D objects are original meshes built by the project; no third-party art asse
 ## Automated checks
 
 The `game-completion` branch runs a separate validation workflow which does **not** export an APK. It checks referenced assets, imports the project in Godot, runs a short runtime smoke test, and exercises the complete mission loop (including phone choices and replay-related state). The Android APK workflow remains separate and is intentionally run only after the game has passed its readiness checks.
+
+
+## Android APK
+
+Download the latest Android build from [GitHub Releases](https://github.com/kirovo389-creator/How-to-suck/releases/latest). The APK is debug-signed for testing.

@@ -10,6 +10,15 @@ func _run_tests() -> void:
     var main: Node = MainScene.instantiate()
     root.add_child(main)
     current_scene = main
+    var startup_player := main.get("player") as Node3D
+    var startup_world := main.get("world") as Node3D
+    var startup_camera: Camera3D
+    if is_instance_valid(startup_world):
+        startup_camera = startup_world.get_node_or_null("FollowCamera") as Camera3D
+    _check(is_instance_valid(startup_camera) and startup_camera.current,
+        "main scene activates its 3D camera during startup")
+    _check(is_instance_valid(startup_camera) and startup_camera.get("target") == startup_player,
+        "follow camera binds to player before first frame")
     await process_frame
 
     _check(main.has_method("_on_action_pressed"), "main gameplay script loaded")

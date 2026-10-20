@@ -507,6 +507,7 @@ func _build_camera() -> void:
     camera.fov = 58.0
     camera.set_script(load("res://scripts/follow_camera.gd"))
     add_child(camera)
+    camera.make_current()
 
 func _build_security_cameras() -> void:
     var positions: Array[Vector3] = [

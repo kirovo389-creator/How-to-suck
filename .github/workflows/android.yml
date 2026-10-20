@@ -1,4 +1,8 @@
 name: Build Android APK
+
+permissions:
+  contents: write
+
 on:
   push:
     branches: [main, game-completion]
@@ -66,6 +70,15 @@ jobs:
           fi
       - name: Test full gameplay loop
         run: godot --headless --audio-driver Dummy --path . --script res://tests/gameplay_smoke_test.gd
+      - name: Set Android release version
+        if: github.ref == 'refs/heads/game-completion' && github.event_name == 'push'
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: 0.1.${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          sed -i -E "s#^version/code=.*#version/code=${VERSION_CODE}#" export_presets.cfg
+          sed -i -E "s#^version/name=.*#version/name=\"${VERSION_NAME}\"#" export_presets.cfg
       - name: Export APK
         shell: bash
         env:
@@ -104,3 +117,21 @@ jobs:
           path: build/HowToSuck.apk
           if-no-files-found: error
           retention-days: 14
+      - name: Publish APK in GitHub Releases
+        if: github.ref == 'refs/heads/game-completion' && github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.1.${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          name: How to Suck v0.1.${{ github.run_number }} (Android)
+          body: |
+            Android build of How to Suck.
+
+            The APK is debug-signed for testing. Install it on an Android device with ARM64 support.
+          files: build/HowToSuck.apk
+          draft: false
+          prerelease: false
+          make_latest: true
+          overwrite_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
