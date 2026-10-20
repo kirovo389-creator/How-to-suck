@@ -84,8 +84,9 @@ func _run_tests() -> void:
     _check(main.has_method("_toggle_sprint"), "game handles sprint activation")
     _check(player.has_method("set_sprinting"), "player supports sprint movement")
     hud.call("_choose_location", "store")
-    await process_frame
     world = main.get("world") as Node3D
+    await world.build_completed
+    await process_frame
     _check(str(world.get("level_id")) == "store", "intro can switch to the shop level")
     var background_music := main.get("music") as AudioStreamPlayer
     _check(background_music.stream == load("res://audio/store_ambience.wav"), "shop uses its own ambient sound")
