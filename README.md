@@ -31,7 +31,7 @@ Security cameras sweep the rooms. Spending too long in a camera's field of view 
 
 ## Android APK
 
-GitHub Actions creates build/HowToSuck.apk and uploads it as the How-to-Suck-Android-APK artifact. The workflow runs on pushes to main or manually from Actions → Build Android APK → Run workflow.
+GitHub Actions can create build/HowToSuck.apk and upload it as the How-to-Suck-Android-APK artifact. Before export, the workflow imports the game and runs headless gameplay/runtime tests; after export, it verifies the APK archive and ARM64 Godot library. The APK workflow is configured for pushes to main or an explicit manual dispatch. The separate game-completion branch uses validation-only CI and does not trigger an APK export.
 
 All 3D objects are original meshes built by the project; no third-party art assets are required.
 

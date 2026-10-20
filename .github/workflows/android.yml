@@ -18,17 +18,41 @@ jobs:
         with:
           packages: ''
       - name: Install Android SDK packages
-        run: sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+        run: sdkmanager --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-34" "build-tools;34.0.0" "cmdline-tools;latest" "cmake;3.10.2.4988404" "ndk;23.2.8568313"
       - name: Install Godot and export templates
+        shell: bash
         run: |
-          wget -q https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip -O godot.zip
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --retry-delay 2 \
+            https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip \
+            --output godot.zip
           unzip -q godot.zip -d godot-bin
           chmod +x godot-bin/Godot_v4.4.1-stable_linux.x86_64
-          sudo mv godot-bin/Godot_v4.4.1-stable_linux.x86_64 /usr/local/bin/godot
-          wget -q https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz -O templates.tpz
-          mkdir -p ~/.local/share/godot/export_templates/4.4.1.stable
+          sudo install -m 0755 godot-bin/Godot_v4.4.1-stable_linux.x86_64 /usr/local/bin/godot
+          curl --fail --location --retry 5 --retry-all-errors --retry-delay 2 \
+            https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz \
+            --output templates.tpz
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.4.1.stable"
           unzip -q templates.tpz -d template-unpack
-          cp -r template-unpack/templates/* ~/.local/share/godot/export_templates/4.4.1.stable/
+          cp -r template-unpack/templates/* "$HOME/.local/share/godot/export_templates/4.4.1.stable/"
+          godot --version
+      - name: Configure Android export paths and debug signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.config/godot" "$RUNNER_TEMP"
+          keytool -genkeypair -noprompt \
+            -keystore "$RUNNER_TEMP/debug.keystore" \
+            -storepass android -keypass android \
+            -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+          cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          EOF
       - name: Import project
         run: godot --headless --editor --path . --quit
       - name: Run headless game smoke test
@@ -43,9 +67,37 @@ jobs:
       - name: Test full gameplay loop
         run: godot --headless --audio-driver Dummy --path . --script res://tests/gameplay_smoke_test.gd
       - name: Export APK
+        shell: bash
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ runner.temp }}/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
+          set -euo pipefail
           mkdir -p build
+          rm -f build/HowToSuck.apk
           godot --headless --path . --export-debug "Android" build/HowToSuck.apk
+      - name: Verify APK archive and native library
+        run: |
+          python3 - <<'PY'
+          import sys
+          import zipfile
+          from pathlib import Path
+
+          apk = Path("build/HowToSuck.apk")
+          if not apk.is_file() or apk.stat().st_size < 1_000_000:
+              sys.exit("APK is missing or implausibly small.")
+          with zipfile.ZipFile(apk) as archive:
+              damaged = archive.testzip()
+              if damaged:
+                  sys.exit(f"APK contains a corrupt ZIP entry: {damaged}")
+              names = set(archive.namelist())
+          required = {"AndroidManifest.xml", "lib/arm64-v8a/libgodot_android.so"}
+          missing = sorted(required - names)
+          if missing:
+              sys.exit("APK is missing required Android files: " + ", ".join(missing))
+          print(f"APK verified: {apk.stat().st_size:,} bytes, {len(names)} files.")
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: How-to-Suck-Android-APK

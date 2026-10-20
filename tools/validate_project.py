@@ -43,8 +43,23 @@ require('architectures/arm64-v8a=true' in preset, "Android arm64 architecture is
 require('screen/orientation=0' in preset, "Android display is landscape")
 require('gradle_build/min_sdk=' not in preset and 'gradle_build/target_sdk=' not in preset,
         "Non-Gradle export does not override Gradle-only SDK settings")
-require('sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"' in workflow,
-        "Android SDK packages match the Godot 4.4 default target")
+require('sdkmanager --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-34" "build-tools;34.0.0"' in workflow,
+        "Android SDK platform and build-tools versions are fixed")
+require('"cmdline-tools;latest"' in workflow and '"cmake;3.10.2.4988404"' in workflow and
+        '"ndk;23.2.8568313"' in workflow,
+        "Godot Android export dependencies are installed explicitly")
+require('export/android/android_sdk_path = "$ANDROID_HOME"' in workflow and
+        'export/android/java_sdk_path = "$JAVA_HOME"' in workflow,
+        "Godot editor receives Android SDK and Java paths")
+require('GODOT_ANDROID_KEYSTORE_DEBUG_PATH:' in workflow and
+        'GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey' in workflow and
+        'GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android' in workflow,
+        "APK export has a reproducible debug-signing keystore")
+require('name: Verify APK archive and native library' in workflow and
+        workflow.index('name: Verify APK archive and native library') > workflow.index('name: Export APK'),
+        "APK integrity and ARM64 native library are checked before upload")
+require('branches: [main]' in workflow and 'workflow_dispatch:' in workflow,
+        "APK publishing workflow only runs on main or explicit manual dispatch")
 require('name: Run headless game smoke test' in workflow and
         workflow.index('name: Run headless game smoke test') < workflow.index('name: Export APK'),
         "Runtime smoke test is scheduled before APK export")
