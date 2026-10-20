@@ -52,8 +52,9 @@ require('loot_total: int = 5' in game and 'dirt_remaining: int = 7' in game,
         "Mission objective counts are defined")
 require('func _scan_security_cameras()' in game and 'alert_level >= 100.0' in game,
         "Security camera detection and alert-loss state exist")
-require('func _finish_cutscene()' in game and 'func _finish(success: bool' in game,
-        "Opening cinematic and end-state logic exist")
+require('func _finish_cutscene()' in game and 'func _finish(success: bool' in game and
+        'play_escape_cutscene' in game,
+        "Opening and ending cinematics plus end-state logic exist")
 require('func unlock_exit()' in world and 'set_meta("kind", "exit")' in world,
         "Exit is gated behind the mission objective")
 require('signal call_answered' in hud and 'signal cutscene_skipped' in hud and

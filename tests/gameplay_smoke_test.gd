@@ -109,7 +109,7 @@ func _run_tests() -> void:
     _check(bool(main.get("_ending_cutscene_active")), "successful escape starts the ending cinematic")
     main.call("_skip_cutscene")
     _check(not bool(main.get("_ending_cutscene_active")), "successful ending cinematic can be skipped")
-    _check(bool(hud.get_node_or_null("EndingOverlay")) and hud.get_node_or_null("EndingOverlay").visible, "success results panel appears")
+    _check(is_instance_valid(hud.get("_ending_overlay")) and (hud.get("_ending_overlay") as Control).visible, "success results panel appears")
 
     # Verify loss paths without allowing them to interfere with the full win flow.
     main.set("ended", false)
