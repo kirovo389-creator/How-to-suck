@@ -91,6 +91,7 @@ func _ready() -> void:
     add_child(sfx)
     hud.show_intro()
     _refresh_status()
+    _play_dev_studio_splash()
 
 func _exit_tree() -> void:
     _stop_audio()
@@ -593,3 +594,40 @@ func _play_sound(sound_name: String) -> void:
 func _loop_music() -> void:
     if is_instance_valid(music) and not ended:
         music.play()
+
+
+func _play_dev_studio_splash() -> void:
+    # Use an in-game overlay instead of Godot's native boot image. This also
+    # guarantees a visible first frame on Android while the 3D scene initializes.
+    var layer := CanvasLayer.new()
+    layer.name = "DevStudioSplash"
+    layer.layer = 100
+    add_child(layer)
+
+    var background := ColorRect.new()
+    background.name = "WhiteBackground"
+    background.color = Color.WHITE
+    background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    background.mouse_filter = Control.MOUSE_FILTER_STOP
+    layer.add_child(background)
+
+    var title := Label.new()
+    title.name = "StudioTitle"
+    title.text = "Dev Studio"
+    title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    title.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+    title.offset_left = -300.0
+    title.offset_top = -55.0
+    title.offset_right = 300.0
+    title.offset_bottom = 55.0
+    title.add_theme_font_size_override("font_size", 48)
+    title.add_theme_color_override("font_color", Color.BLACK)
+    title.modulate = Color(0.0, 0.0, 0.0, 0.0)
+    background.add_child(title)
+
+    var tween := create_tween()
+    tween.tween_property(title, "modulate:a", 1.0, 0.9).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    tween.tween_interval(0.7)
+    tween.tween_property(title, "modulate:a", 0.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+    tween.tween_callback(layer.queue_free)

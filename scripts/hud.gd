@@ -51,7 +51,7 @@ func _ready() -> void:
     add_child(_root)
     _build_hud()
     _intro_overlay = _make_overlay("IntroOverlay")
-    _intro_panel = _center_panel("НАЧАЛО СМЕНЫ", "Выбери объект, где пройдёт ночная смена. Собери ценности, убери все пятна и выйди до возвращения хозяев. Не задерживайся в поле зрения камер: присядь, чтобы снизить риск обнаружения.", "НАЧАТЬ СМЕНУ", func(): action_pressed.emit(), true)
+    _intro_panel = _center_panel("NIGHT SHIFT", "Choose a location for your night shift. Collect valuables, clean every stain, and leave before the owners return.", "NEW GAME", func(): action_pressed.emit(), true)
     _call_overlay = _make_overlay("CallOverlay")
     _call_panel = _build_call_panel()
     _pause_overlay = _make_overlay("PauseOverlay")
