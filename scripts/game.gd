@@ -163,7 +163,7 @@ func _process(delta: float) -> void:
             player.set_mobile_direction(Vector2.ZERO)
             player.set_physics_process(true)
             alert_level = minf(100.0, alert_level + 22.0)
-            hud.toast("Звонок пропущен. Хозяева ускорили возвращение.")
+            hud.toast("Звонок пропущен. " + ("Управляющий ускорил возвращение." if level_id == "store" else "Хозяева ускорили возвращение."))
             _play_sound("alert")
     if alert_level >= 100.0:
         _finish(false, "СИГНАЛИЗАЦИЯ", "Камеры раскрыли тебя. " + ("Управляющий магазина получил сигнал тревоги." if level_id == "store" else "Хозяева уже вызвали охрану."))
@@ -382,7 +382,7 @@ func _answer_call() -> void:
     player.set_physics_process(true)
     alert_level = maxf(0.0, alert_level - 24.0)
     time_left = minf(240.0, time_left + 8.0)
-    hud.toast("Ты успокоил хозяев. Тревога снизилась, но время продолжает идти.")
+    hud.toast(("Ты успокоил управляющего." if level_id == "store" else "Ты успокоил хозяев.") + " Тревога снизилась, но время продолжает идти.")
     _play_sound("click")
     _refresh_status()
 
