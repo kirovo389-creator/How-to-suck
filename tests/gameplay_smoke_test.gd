@@ -198,8 +198,22 @@ func _run_tests() -> void:
 func _cleanup_and_quit(main_scene: Node, exit_code: int) -> void:
     current_scene = null
     if is_instance_valid(main_scene):
+        var music_player := main_scene.get("music") as AudioStreamPlayer
+        var sound_player := main_scene.get("sfx") as AudioStreamPlayer
+        var has_audio_cleanup: bool = main_scene.has_method("_stop_audio")
+        _check(has_audio_cleanup, "game exposes deterministic audio shutdown")
+        if has_audio_cleanup:
+            main_scene.call("_stop_audio")
+        if is_instance_valid(music_player):
+            _check(not music_player.playing, "ambient music stops when the scene closes")
+            _check(music_player.stream == null, "ambient stream releases its resource")
+        if is_instance_valid(sound_player):
+            _check(not sound_player.playing, "sound effects stop when the scene closes")
+            _check(sound_player.stream == null, "sound effect stream releases its resource")
         main_scene.queue_free()
     await process_frame
+    await process_frame
+    await create_timer(0.35).timeout
     call_deferred("quit", exit_code)
 
 func _complete_objectives(main_scene: Node) -> void:

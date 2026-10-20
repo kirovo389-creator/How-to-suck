@@ -52,7 +52,7 @@ jobs:
         run: |
           set -o pipefail
           godot --verbose --headless --audio-driver Dummy --path . --script res://tests/gameplay_smoke_test.gd 2>&1 | tee gameplay-test.log
-          if grep -E "SCRIPT ERROR|Parse Error|FAIL:" gameplay-test.log; then
+          if grep -E "SCRIPT ERROR|Parse Error|FAIL:|ObjectDB instances leaked at exit|resources still in use at exit" gameplay-test.log; then
             echo "Gameplay regression test reported an error."
             exit 1
           fi
