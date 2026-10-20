@@ -55,7 +55,7 @@ var _world_process_mode_before_pause: int = Node.PROCESS_MODE_INHERIT
 func _ready() -> void:
     # Render a real loading screen before building the procedural 3D level.
     _play_dev_studio_splash()
-    await RenderingServer.frame_post_draw
+    await get_tree().process_frame
 
     _lighting()
     world = WorldScene.instantiate()
