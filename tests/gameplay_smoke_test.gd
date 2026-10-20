@@ -129,6 +129,7 @@ func _run_tests() -> void:
     world = main.get("world") as Node3D
     exit_target = world.get_node_or_null("ExitInteraction") as Node3D
     hud = main.get("hud") as CanvasLayer
+    hud_root = hud.get("_root") as Control
     background_music = main.get("music") as AudioStreamPlayer
     _check(str(world.get("level_id")) == "apartment", "fresh shift starts in the apartment")
     _check(background_music.stream == load("res://audio/ambience.wav"), "apartment ambience is restored")
@@ -204,9 +205,7 @@ func _run_tests() -> void:
     _check(bool(player.get("is_sprinting")), "sprint toggles on")
     _check(float(player.get("move_speed")) > 4.0, "sprint increases player speed")
     await physics_frame
-    var stamina_bar := hud_root.get_node("MissionHUD/VBoxContainer/StaminaBar") as ProgressBar
-    if not is_instance_valid(stamina_bar):
-        stamina_bar = hud_root.find_child("StaminaBar", true, false) as ProgressBar
+    var stamina_bar := hud_root.find_child("StaminaBar", true, false) as ProgressBar
     var stamina_before_sprint: float = float(main.get("stamina"))
     main.call("_process", 0.25)
     _check(float(main.get("stamina")) < stamina_before_sprint, "moving while sprinting drains stamina")
