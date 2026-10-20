@@ -71,7 +71,7 @@ func _run_tests() -> void:
     var broom_arm_rotation_before := broom_arm.rotation.x
     shop_player_for_animation.call("play_interaction", "dirt")
     _check(bool(shop_player_for_animation.call("is_interacting")), "cleaning animation starts on interaction")
-    await physics_frame
+    shop_player_for_animation.call("_update_interaction_animation", 0.1)
     _check(not is_equal_approx(broom_arm.rotation.x, broom_arm_rotation_before),
         "cleaning animation moves the arm holding the broom")
     await create_timer(0.72).timeout
