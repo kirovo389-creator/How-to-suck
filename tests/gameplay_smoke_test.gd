@@ -66,8 +66,14 @@ func _run_tests() -> void:
     await process_frame
     var shop_player_for_animation := main.get("player") as Node3D
     _check(shop_player_for_animation.has_method("play_interaction"), "player has dedicated pickup and cleaning animations")
+    var shop_arms: Array = shop_player_for_animation.get("_arms")
+    var broom_arm := shop_arms[1] as Node3D
+    var broom_arm_rotation_before := broom_arm.rotation.x
     shop_player_for_animation.call("play_interaction", "dirt")
     _check(bool(shop_player_for_animation.call("is_interacting")), "cleaning animation starts on interaction")
+    await process_frame
+    _check(not is_equal_approx(broom_arm.rotation.x, broom_arm_rotation_before),
+        "cleaning animation moves the arm holding the broom")
     await create_timer(0.72).timeout
     _check(not bool(shop_player_for_animation.call("is_interacting")), "interaction animation returns to the idle pose")
     await _complete_objectives(main)

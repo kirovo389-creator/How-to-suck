@@ -88,12 +88,14 @@ func _update_interaction_animation(delta: float) -> void:
     var bend := 0.25 if _interaction_kind == "loot" else 0.42
     if is_instance_valid(_torso):
         _torso.rotation.x = bend * weight
-    if not _arms.is_empty():
-        var reach := -0.62 if _interaction_kind == "loot" else -1.0
-        _arms[0].rotation.x = _rest_arm_rotations[0].x + reach * weight
-        _arms[0].rotation.z = _rest_arm_rotations[0].z - 0.08 * weight
-    if _arms.size() > 1:
-        _arms[1].rotation.x = _rest_arm_rotations[1].x - 0.18 * weight
+    var active_arm_index := 1 if _interaction_kind == "dirt" else 0
+    var secondary_arm_index := 1 - active_arm_index
+    var reach := -0.62 if _interaction_kind == "loot" else -1.0
+    if active_arm_index < _arms.size():
+        _arms[active_arm_index].rotation.x = _rest_arm_rotations[active_arm_index].x + reach * weight
+        _arms[active_arm_index].rotation.z = _rest_arm_rotations[active_arm_index].z + (-0.08 if active_arm_index == 0 else 0.08) * weight
+    if secondary_arm_index < _arms.size():
+        _arms[secondary_arm_index].rotation.x = _rest_arm_rotations[secondary_arm_index].x - 0.18 * weight
     if progress >= 1.0:
         _interaction_elapsed = -1.0
         _interaction_kind = ""
@@ -134,11 +136,12 @@ func _make_character() -> void:
         _box(shoulder, Vector3(0.0, -0.21, 0.0), Vector3(0.16, 0.43, 0.17), uniform)
         _sphere(shoulder, Vector3(0.0, -0.43, 0.035), Vector3(0.09, 0.095, 0.09), skin)
         _arms.append(shoulder)
+    # The broom is parented to the cleaner's right hand so sweeping is visible.
+    _box(_arms[1], Vector3(0.04, -0.58, 0.18), Vector3(0.055, 0.82, 0.055), Color(0.5, 0.34, 0.18))
+    _box(_arms[1], Vector3(0.04, -0.98, 0.18), Vector3(0.29, 0.08, 0.23), Color(0.22, 0.64, 0.75))
     # Work belt, shoulder strap and a small utility pouch.
     _box(_torso, Vector3(0.23, -0.18, 0.02), Vector3(0.1, 0.27, 0.11), Color(0.6, 0.39, 0.17))
     _box(_visual_root, Vector3(-0.2, 1.0, -0.2), Vector3(0.28, 0.42, 0.15), Color(0.2, 0.22, 0.2))
-    _box(_visual_root, Vector3(0.4, 0.47, 0.22), Vector3(0.055, 0.78, 0.055), Color(0.5, 0.34, 0.18))
-    _box(_visual_root, Vector3(0.4, 0.09, 0.22), Vector3(0.29, 0.08, 0.23), Color(0.22, 0.64, 0.75))
 
 func _box(parent: Node3D, position: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
     var instance := MeshInstance3D.new()
