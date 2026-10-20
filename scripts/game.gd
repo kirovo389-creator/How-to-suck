@@ -100,6 +100,7 @@ func _process(delta: float) -> void:
         call_active = true
         call_response_elapsed = 0.0
         player.set_mobile_direction(Vector2.ZERO)
+        player.set_physics_process(false)
         hud.show_call("Хозяева: «На камерах какое-то движение. Мы скоро вернёмся. Ты ещё убираешь?»")
         _play_sound("phone")
     if call_active:
@@ -107,6 +108,8 @@ func _process(delta: float) -> void:
         if call_response_elapsed >= 10.0:
             call_active = false
             hud.hide_call()
+            player.set_mobile_direction(Vector2.ZERO)
+            player.set_physics_process(true)
             alert_level = minf(100.0, alert_level + 22.0)
             hud.toast("Звонок пропущен. Хозяева ускорили возвращение.")
             _play_sound("alert")
@@ -299,6 +302,8 @@ func _answer_call() -> void:
         return
     call_active = false
     hud.hide_call()
+    player.set_mobile_direction(Vector2.ZERO)
+    player.set_physics_process(true)
     alert_level = maxf(0.0, alert_level - 24.0)
     time_left = minf(240.0, time_left + 8.0)
     hud.toast("Ты успокоил хозяев. Тревога снизилась, но время продолжает идти.")
@@ -310,6 +315,8 @@ func _decline_call() -> void:
         return
     call_active = false
     hud.hide_call()
+    player.set_mobile_direction(Vector2.ZERO)
+    player.set_physics_process(true)
     alert_level = minf(100.0, alert_level + 18.0)
     hud.toast("Ты сбросил звонок. Подозрения выросли.")
     _play_sound("alert")
