@@ -14,7 +14,17 @@ var _cutscene_center: Vector3
 var _cutscene_bedroom: Vector3
 
 func _ready() -> void:
+    # Android can create the world and player in the same frame. Resolve the target
+    # after the scene tree has settled and force this camera to become active.
+    clear_current(false)
+    call_deferred("_initialize_camera")
+
+func _initialize_camera() -> void:
     target = _find_target()
+    if is_instance_valid(target):
+        set_target(target)
+    else:
+        make_current()
 
 func set_target(target_node: Node3D) -> void:
     if not is_instance_valid(target_node):
@@ -23,6 +33,7 @@ func set_target(target_node: Node3D) -> void:
     _cutscene_active = false
     global_position = target.global_position + Vector3(0.0, 10.0, 11.0)
     look_at(target.global_position + Vector3(0.0, 0.8, 0.0), Vector3.UP)
+    clear_current(false)
     make_current()
 
 func play_opening_cutscene() -> void:
