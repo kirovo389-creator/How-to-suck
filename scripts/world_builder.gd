@@ -56,6 +56,7 @@ func _mesh_box(parent: Node3D, name_value: String, position: Vector3, size: Vect
     return mesh_instance
 
 func _box(name_value: String, position: Vector3, size: Vector3, color: Color, collision: bool = true) -> MeshInstance3D:
+    var result: MeshInstance3D
     if collision:
         var body := StaticBody3D.new()
         body.name = name_value
@@ -66,8 +67,35 @@ func _box(name_value: String, position: Vector3, size: Vector3, color: Color, co
         box_shape.size = size
         shape.shape = box_shape
         body.add_child(shape)
-        return _mesh_box(body, name_value + "Mesh", Vector3.ZERO, size, color)
-    return _mesh_box(self, name_value, position, size, color)
+        result = _mesh_box(body, name_value + "Mesh", Vector3.ZERO, size, color)
+    else:
+        result = _mesh_box(self, name_value, position, size, color)
+    _apply_surface_texture(result, name_value)
+    return result
+
+func _apply_surface_texture(instance: MeshInstance3D, object_name: String) -> void:
+    var key := object_name.to_lower()
+    var texture_path: String = ""
+    var uv_scale := Vector3.ONE
+    if key == "wooden floor":
+        texture_path = "res://assets/materials/wood_floor.svg"
+        uv_scale = Vector3(10.0, 1.0, 10.0)
+    elif key == "store polished floor":
+        texture_path = "res://assets/materials/shop_tile.svg"
+        uv_scale = Vector3(12.0, 1.0, 10.0)
+    elif key == "kitchen tile" or key == "bathroom tile":
+        texture_path = "res://assets/materials/ceramic_tile.svg"
+        uv_scale = Vector3(4.0, 1.0, 4.0)
+    elif key.contains("wall") and not key.contains("poster"):
+        texture_path = "res://assets/materials/plaster_wall.svg"
+        uv_scale = Vector3(5.0, 2.2, 1.0)
+    if texture_path.is_empty():
+        return
+    var surface := StandardMaterial3D.new()
+    surface.albedo_texture = load(texture_path) as Texture2D
+    surface.roughness = 0.88
+    surface.uv1_scale = uv_scale
+    instance.material_override = surface
 
 func _sphere(parent: Node3D, name_value: String, position: Vector3, scale_value: Vector3, color: Color, glow: bool = false) -> MeshInstance3D:
     var instance := MeshInstance3D.new()
