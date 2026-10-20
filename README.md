@@ -1,5 +1,14 @@
-# How to Suck
+# How to Suck — 3D Android game
 
-Godot 4 Android game prototype. Gameplay: inspect locations, find valuable items, collect evidence-free loot within a fictional arcade stealth challenge, then finish a cleaning shift before the owners return.
+A stylized 3D stealth-cleaning game made with Godot 4.4.1. The initial playable build has a furnished apartment, third-person character, touch joystick, interaction button, collectible valuables, dirt spots, countdown, and a phone call from the owners.
 
-The Android APK is built by GitHub Actions and uploaded as a workflow artifact.
+## Gameplay
+1. Start the night shift.
+2. Explore and collect five highlighted valuables.
+3. Clean seven dirt spots using the interaction button.
+4. Answer the owners' call and finish before time runs out.
+
+## Build
+GitHub Actions exports `build/HowToSuck.apk` and uploads it as the `How-to-Suck-Android-APK` artifact. It runs on pushes to main or manually via Actions → Build Android APK → Run workflow.
+
+All initial environment assets are generated from 3D meshes and materials in Godot; no external assets are required.
