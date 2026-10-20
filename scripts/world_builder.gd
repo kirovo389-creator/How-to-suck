@@ -1,15 +1,21 @@
 extends Node3D
 
 const CameraScene = preload("res://scenes/security_camera.tscn")
+var level_id: String = "apartment"
 var _exit_hinge: Node3D
 var _exit_target: Node3D
 var _exit_unlocked: bool = false
 
 func _ready() -> void:
-    _build_room()
-    _build_partitions()
-    _build_furniture()
-    _build_decor()
+    if level_id == "store":
+        _build_store_room()
+        _build_store_furniture()
+        _build_store_decor()
+    else:
+        _build_room()
+        _build_partitions()
+        _build_furniture()
+        _build_decor()
     _build_collectibles()
     _build_exit()
     _build_security_cameras()
@@ -89,6 +95,98 @@ func _cylinder(parent: Node3D, name_value: String, position: Vector3, radius: fl
     instance.material_override = _material(color)
     parent.add_child(instance)
     return instance
+
+func _build_store_room() -> void:
+    _box("Store polished floor", Vector3(0.0, -0.18, 0.0), Vector3(24.0, 0.35, 20.0), Color(0.19, 0.23, 0.25))
+    _box("Store back wall west", Vector3(-9.0, 2.0, -10.0), Vector3(6.0, 4.0, 0.3), Color(0.13, 0.21, 0.26))
+    _box("Store back wall east", Vector3(5.0, 2.0, -10.0), Vector3(14.0, 4.0, 0.3), Color(0.13, 0.21, 0.26))
+    _box("Store left wall", Vector3(-12.0, 2.0, 0.0), Vector3(0.3, 4.0, 20.0), Color(0.11, 0.18, 0.23))
+    _box("Store right wall", Vector3(12.0, 2.0, 0.0), Vector3(0.3, 4.0, 20.0), Color(0.11, 0.18, 0.23))
+    _box("Store front wall west", Vector3(-6.7, 1.8, 10.0), Vector3(10.6, 3.6, 0.3), Color(0.11, 0.18, 0.23))
+    _box("Store front wall east", Vector3(6.7, 1.8, 10.0), Vector3(10.6, 3.6, 0.3), Color(0.11, 0.18, 0.23))
+    _box("Shopfront glass left", Vector3(-6.0, 2.0, 9.79), Vector3(4.5, 2.35, 0.045), Color(0.08, 0.31, 0.4, 0.48), false)
+    _box("Shopfront glass right", Vector3(6.0, 2.0, 9.79), Vector3(4.5, 2.35, 0.045), Color(0.08, 0.31, 0.4, 0.48), false)
+    _box("Shop entrance mat", Vector3(0.0, 0.018, 8.9), Vector3(2.8, 0.045, 1.25), Color(0.075, 0.26, 0.26), false)
+    for x in [-9.5, -6.0, -2.5, 1.0, 4.5, 8.0]:
+        _box("Store tile inlay", Vector3(x, 0.012, 0.0), Vector3(0.035, 0.025, 18.8), Color(0.28, 0.32, 0.32), false)
+    for z in [-8.4, -0.8, 5.9]:
+        _box("Store floor stripe", Vector3(0.0, 0.015, z), Vector3(22.8, 0.02, 0.035), Color(0.34, 0.37, 0.36), false)
+    _box("Storefront sign housing", Vector3(0.0, 3.18, -9.72), Vector3(6.4, 0.7, 0.12), Color(0.035, 0.07, 0.085), false)
+    var sign := Label3D.new()
+    sign.name = "StorefrontSign"
+    sign.text = "NIGHT MARKET"
+    sign.position = Vector3(0.0, 3.05, -9.63)
+    sign.rotation.y = PI
+    sign.font_size = 64
+    sign.pixel_size = 0.006
+    sign.modulate = Color(0.34, 0.94, 0.78)
+    sign.outline_size = 8
+    sign.outline_modulate = Color(0.015, 0.045, 0.055)
+    add_child(sign)
+
+func _build_store_furniture() -> void:
+    var shelf_frame := Color(0.16, 0.22, 0.24)
+    var shelf_edge := Color(0.47, 0.54, 0.54)
+    var shelf_positions: Array[float] = [-8.0, -4.0, 0.0, 4.0, 8.0]
+    var product_colors: Array[Color] = [
+        Color(0.78, 0.23, 0.18),
+        Color(0.18, 0.56, 0.68),
+        Color(0.87, 0.62, 0.22),
+        Color(0.28, 0.54, 0.31),
+        Color(0.53, 0.35, 0.69)
+    ]
+    for row in range(shelf_positions.size()):
+        var x: float = shelf_positions[row]
+        _box("Aisle shelf left upright %d" % row, Vector3(x - 0.56, 0.9, -4.45), Vector3(0.095, 1.8, 6.35), shelf_frame)
+        _box("Aisle shelf right upright %d" % row, Vector3(x + 0.56, 0.9, -4.45), Vector3(0.095, 1.8, 6.35), shelf_frame)
+        for shelf_level in [0.42, 0.98, 1.53]:
+            _box("Shelf deck %d %.2f" % [row, shelf_level], Vector3(x, shelf_level, -4.45), Vector3(1.12, 0.075, 6.35), shelf_edge, false)
+        for section in range(4):
+            var z: float = -6.65 + float(section) * 1.48
+            for layer in range(2):
+                for side_index in range(2):
+                    var offset_x: float = -0.27 if side_index == 0 else 0.27
+                    var color_index: int = (row + section + layer + side_index) % product_colors.size()
+                    _box("Stock %d %d %d %d" % [row, section, layer, side_index], Vector3(x + offset_x, 0.67 + float(layer) * 0.57, z), Vector3(0.24, 0.34, 0.31), product_colors[color_index], false)
+    _box("Checkout counter", Vector3(-8.7, 0.63, 4.75), Vector3(4.1, 1.25, 1.25), Color(0.21, 0.27, 0.28))
+    _box("Checkout countertop", Vector3(-8.7, 1.29, 4.75), Vector3(4.18, 0.12, 1.34), Color(0.54, 0.57, 0.53), false)
+    _box("Checkout front panel", Vector3(-8.7, 0.65, 4.1), Vector3(3.85, 0.82, 0.045), Color(0.09, 0.16, 0.18), false)
+    _box("Register base", Vector3(-7.75, 1.48, 4.43), Vector3(0.72, 0.28, 0.45), Color(0.07, 0.09, 0.105))
+    _box("Register display", Vector3(-7.75, 1.73, 4.4), Vector3(0.62, 0.28, 0.09), Color(0.2, 0.69, 0.58), false)
+    _box("Barcode scanner", Vector3(-9.0, 1.4, 4.5), Vector3(0.52, 0.07, 0.36), Color(0.095, 0.13, 0.14), false)
+    for basket_index in range(3):
+        _box("Shopping basket %d" % basket_index, Vector3(-10.7 + basket_index * 0.7, 0.26, 6.55), Vector3(0.55, 0.42, 0.65), Color(0.13, 0.42, 0.46))
+    _box("Staff desk", Vector3(8.7, 0.58, 4.85), Vector3(3.0, 1.1, 1.3), Color(0.28, 0.2, 0.14))
+    _box("Staff desk top", Vector3(8.7, 1.17, 4.85), Vector3(3.08, 0.1, 1.38), Color(0.45, 0.34, 0.23), false)
+    _box("Staff locker", Vector3(10.65, 1.05, 6.7), Vector3(1.15, 2.0, 0.8), Color(0.23, 0.3, 0.31))
+    _box("Staff locker handle", Vector3(10.04, 1.1, 6.7), Vector3(0.055, 0.5, 0.07), Color(0.74, 0.71, 0.6), false)
+    _box("Cold display", Vector3(10.55, 1.16, -5.1), Vector3(1.4, 2.25, 5.7), Color(0.2, 0.28, 0.31))
+    _box("Cold display glass", Vector3(9.82, 1.2, -5.1), Vector3(0.035, 1.85, 5.2), Color(0.17, 0.49, 0.57, 0.44), false)
+    for z in [-6.8, -5.1, -3.4]:
+        _box("Cooler light", Vector3(9.79, 1.2, z), Vector3(0.025, 0.04, 1.35), Color(0.25, 0.85, 0.88), false)
+    for x in [-4.2, -2.2]:
+        _cylinder(self, "Queue post", Vector3(x, 0.46, 6.55), 0.065, 0.9, shelf_edge)
+    _box("Queue belt", Vector3(-3.2, 0.65, 6.55), Vector3(1.95, 0.045, 0.06), Color(0.72, 0.31, 0.16), false)
+
+func _build_store_decor() -> void:
+    var signs: Array[String] = ["SNACKS", "HOME", "TECH", "TOYS", "DAILY"]
+    var aisle_x: Array[float] = [-8.0, -4.0, 0.0, 4.0, 8.0]
+    for index in range(signs.size()):
+        var x: float = aisle_x[index]
+        _box("Aisle marker board %d" % index, Vector3(x, 2.04, -0.95), Vector3(1.1, 0.27, 0.11), Color(0.035, 0.085, 0.095), false)
+        var marker_text := Label3D.new()
+        marker_text.name = "Aisle marker label %d" % index
+        marker_text.text = signs[index]
+        marker_text.position = Vector3(x, 2.06, -0.875)
+        marker_text.rotation.y = PI
+        marker_text.font_size = 38
+        marker_text.pixel_size = 0.004
+        marker_text.modulate = Color(0.74, 0.91, 0.88)
+        add_child(marker_text)
+    _box("Wall poster frame", Vector3(11.77, 2.2, 2.5), Vector3(0.08, 1.65, 2.2), Color(0.06, 0.11, 0.12), false)
+    _box("Wall poster", Vector3(11.71, 2.2, 2.5), Vector3(0.025, 1.42, 1.95), Color(0.15, 0.42, 0.39), false)
+    _box("Break room poster frame", Vector3(-11.77, 2.15, -3.3), Vector3(0.08, 1.4, 1.8), Color(0.42, 0.27, 0.15), false)
+    _box("Break room poster", Vector3(-11.71, 2.15, -3.3), Vector3(0.025, 1.18, 1.58), Color(0.2, 0.37, 0.45), false)
 
 func _build_room() -> void:
     _box("Wooden floor", Vector3(0.0, -0.18, 0.0), Vector3(24.0, 0.35, 20.0), Color(0.25, 0.17, 0.125))
@@ -220,6 +318,24 @@ func _build_decor() -> void:
     add_child(floor_light)
 
 func _build_collectibles() -> void:
+    if level_id == "store":
+        _item("Смартфон покупателя", "loot", Vector3(-8.7, 1.45, 4.55), Vector3(0.28, 0.055, 0.46), Color(0.18, 0.78, 0.94))
+        _item("Коллекционная фигурка", "loot", Vector3(-4.0, 1.56, -3.65), Vector3(0.28, 0.33, 0.28), Color(0.91, 0.43, 0.17))
+        _item("Игровая приставка", "loot", Vector3(0.0, 1.62, -5.05), Vector3(0.52, 0.22, 0.34), Color(0.25, 0.75, 0.95))
+        _item("Дорогие часы", "loot", Vector3(4.0, 1.58, -2.95), Vector3(0.37, 0.12, 0.3), Color(0.95, 0.75, 0.2))
+        _item("Конверт из сейфа", "loot", Vector3(8.25, 1.28, 4.65), Vector3(0.42, 0.055, 0.3), Color(0.23, 0.82, 0.4))
+        var store_stains: Array[Vector3] = [
+            Vector3(-6.1, 0.018, 1.0),
+            Vector3(-2.0, 0.018, 2.2),
+            Vector3(2.1, 0.018, 1.0),
+            Vector3(6.2, 0.018, 1.7),
+            Vector3(-6.0, 0.018, -8.1),
+            Vector3(2.0, 0.018, -8.1),
+            Vector3(8.5, 0.018, 0.0)
+        ]
+        for store_index in range(store_stains.size()):
+            _item("Разлив в магазине %d" % (store_index + 1), "dirt", store_stains[store_index], Vector3(0.8, 0.035, 0.55), Color(0.12, 0.075, 0.042), 3)
+        return
     _item("Золотые часы", "loot", Vector3(-8.0, 1.45, -7.5), Vector3(0.42, 0.12, 0.32), Color(0.98, 0.67, 0.17))
     _item("Шкатулка", "loot", Vector3(-4.15, 1.05, -2.3), Vector3(0.42, 0.28, 0.36), Color(0.85, 0.2, 0.36))
     _item("Редкая приставка", "loot", Vector3(2.8, 0.9, -1.12), Vector3(0.56, 0.22, 0.34), Color(0.23, 0.73, 0.91))
@@ -345,11 +461,17 @@ func _build_camera() -> void:
     add_child(camera)
 
 func _build_security_cameras() -> void:
-    var positions := [
+    var positions: Array[Vector3] = [
         Vector3(-10.8, 3.0, -8.2),
         Vector3(10.75, 3.0, 0.2),
         Vector3(8.2, 3.0, -9.2)
     ]
+    if level_id == "store":
+        positions = [
+            Vector3(-10.8, 3.0, -8.2),
+            Vector3(10.75, 3.0, 7.2),
+            Vector3(8.2, 3.0, -8.8)
+        ]
     for index in range(positions.size()):
         var camera := CameraScene.instantiate() as Node3D
         camera.name = "SecurityCamera%d" % (index + 1)

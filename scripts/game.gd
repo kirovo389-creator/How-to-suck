@@ -16,6 +16,7 @@ const SOUND_CLICK = preload("res://audio/click.wav")
 var player
 var hud
 var world
+var level_id: String = "apartment"
 var music: AudioStreamPlayer
 var sfx: AudioStreamPlayer
 var loot_found: int = 0
@@ -47,6 +48,7 @@ func _ready() -> void:
     _lighting()
     world = WorldScene.instantiate()
     world.name = "Apartment"
+    world.set("level_id", level_id)
     add_child(world)
     player = PlayerScene.instantiate()
     player.name = "Player"
@@ -56,6 +58,7 @@ func _ready() -> void:
     hud = HudScene.instantiate()
     add_child(hud)
     hud.action_pressed.connect(_on_action_pressed)
+    hud.location_selected.connect(_select_level)
     hud.cutscene_skipped.connect(_skip_cutscene)
     hud.movement_changed.connect(player.set_mobile_direction)
     hud.call_answered.connect(_answer_call)
@@ -76,6 +79,21 @@ func _ready() -> void:
     add_child(sfx)
     hud.show_intro()
     _refresh_status()
+
+func _select_level(selected_level: String) -> void:
+    if shift_started or ended:
+        return
+    if selected_level != "apartment" and selected_level != "store":
+        return
+    if selected_level == level_id and is_instance_valid(world):
+        return
+    level_id = selected_level
+    if is_instance_valid(world):
+        world.free()
+    world = WorldScene.instantiate()
+    world.name = "Store" if level_id == "store" else "Apartment"
+    world.set("level_id", level_id)
+    add_child(world)
 
 func _process(delta: float) -> void:
     if cutscene_playing:
