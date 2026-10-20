@@ -13,6 +13,7 @@ func _run_tests() -> void:
     await process_frame
 
     _check(main.has_method("_on_action_pressed"), "main gameplay script loaded")
+    _check(main.has_method("_has_interaction_line_of_sight"), "interactions require a clear line of sight")
     var player := main.get("player") as Node3D
     var world := main.get("world") as Node3D
     if not is_instance_valid(player) or not is_instance_valid(world):
