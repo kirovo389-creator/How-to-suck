@@ -44,6 +44,7 @@ var _pending_ending_success: bool = false
 var _pending_ending_heading: String = ""
 var _pending_ending_message: String = ""
 var _pending_ending_seconds: int = 0
+var _world_process_mode_before_pause: int = Node.PROCESS_MODE_INHERIT
 
 func _ready() -> void:
     _lighting()
@@ -394,10 +395,23 @@ func _toggle_pause() -> void:
         paused = true
         player.set_mobile_direction(Vector2.ZERO)
         player.set_physics_process(false)
+        if is_instance_valid(world):
+            _world_process_mode_before_pause = world.process_mode
+            world.process_mode = Node.PROCESS_MODE_DISABLED
+        if is_instance_valid(music):
+            music.stream_paused = true
+        if is_instance_valid(sfx):
+            sfx.stream_paused = true
         hud.show_pause(true)
 
 func _resume_game() -> void:
     paused = false
+    if is_instance_valid(world):
+        world.process_mode = _world_process_mode_before_pause
+    if is_instance_valid(music):
+        music.stream_paused = false
+    if is_instance_valid(sfx):
+        sfx.stream_paused = false
     hud.show_pause(false)
     player.set_mobile_direction(Vector2.ZERO)
     player.set_physics_process(true)

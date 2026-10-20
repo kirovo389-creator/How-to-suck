@@ -81,6 +81,10 @@ require('func _build_vision_cone()' in camera and 'VisionCone' in camera and
 require('func _finish_cutscene()' in game and 'func _finish(success: bool' in game and
         'play_escape_cutscene' in game,
         "Opening and ending cinematics plus end-state logic exist")
+require('world.process_mode = Node.PROCESS_MODE_DISABLED' in game and
+        'world.process_mode = _world_process_mode_before_pause' in game and
+        'music.stream_paused = true' in game and 'music.stream_paused = false' in game,
+        "Pause freezes the world and audio, then restores both on resume")
 require('func unlock_exit()' in world and 'set_meta("kind", "exit")' in world,
         "Exit is gated behind the mission objective")
 require('func _build_store_room()' in world and 'func _build_store_furniture()' in world and
