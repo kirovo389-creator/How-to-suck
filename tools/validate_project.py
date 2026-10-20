@@ -70,7 +70,7 @@ require('loot_total: int = 5' in game and 'dirt_remaining: int = 7' in game,
 require('func _scan_security_cameras()' in game and 'alert_level >= 100.0' in game,
         "Security camera detection and alert-loss state exist")
 require('func _toggle_crouch()' in game and 'signal crouch_pressed' in hud and
-        'func set_crouching(enabled: bool)' in player and
+        'func set_crouching(enabled: bool)' in player and 'call_deferred("_apply_crouch_collision", enabled)' in player and
         'var target_height := 0.42 if bool(target.get("is_crouching")) else 0.82' in camera,
         "Crouching slows movement and lowers the camera detection target")
 require('func play_interaction(kind: String)' in player and

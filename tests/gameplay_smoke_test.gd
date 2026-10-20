@@ -159,6 +159,7 @@ func _run_tests() -> void:
     main.call("_skip_cutscene")
     _check(not bool(main.get("cutscene_playing")), "opening cinematic can be skipped")
     main.call("_toggle_crouch")
+    await process_frame
     _check(bool(player.get("is_crouching")), "crouch mode can be enabled")
     _check(float(player.get("move_speed")) < 4.0, "crouch mode reduces movement speed")
     _check(is_equal_approx(float((player.get_node("CharacterVisual") as Node3D).scale.y), 0.72),
@@ -167,6 +168,7 @@ func _run_tests() -> void:
     _check(is_equal_approx((player_collider.shape as CapsuleShape3D).height, 1.12),
         "crouch lowers the physical collision capsule")
     main.call("_toggle_crouch")
+    await process_frame
     _check(not bool(player.get("is_crouching")), "crouch mode can be disabled")
     _check(is_equal_approx(float((player.get_node("CharacterVisual") as Node3D).scale.y), 1.0),
         "standing restores the character visuals")

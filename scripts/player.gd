@@ -36,9 +36,13 @@ func set_crouching(enabled: bool) -> void:
     move_speed = _standing_speed * 0.58 if enabled else _standing_speed
     if is_instance_valid(_visual_root):
         _visual_root.scale.y = 0.72 if enabled else 1.0
-    if is_instance_valid(_capsule) and is_instance_valid(_collider):
-        _capsule.height = 1.12 if enabled else 1.58
-        _collider.position.y = 0.56 if enabled else 0.79
+    call_deferred("_apply_crouch_collision", enabled)
+
+func _apply_crouch_collision(enabled: bool) -> void:
+    if not is_instance_valid(_capsule) or not is_instance_valid(_collider):
+        return
+    _capsule.height = 1.12 if enabled else 1.58
+    _collider.position.y = 0.56 if enabled else 0.79
 
 func _physics_process(delta: float) -> void:
     var keyboard := Vector2(
