@@ -51,11 +51,19 @@ var _returning_owner: Node3D
 var _world_process_mode_before_pause: int = Node.PROCESS_MODE_INHERIT
 
 func _ready() -> void:
+    # Render a real loading screen before building the procedural 3D level.
+    _play_dev_studio_splash()
+    await RenderingServer.frame_post_draw
+
     _lighting()
     world = WorldScene.instantiate()
     world.name = "Apartment"
     world.set("level_id", level_id)
     add_child(world)
+    # The level builder yields between expensive stages so Android can keep drawing
+    # the loading screen instead of appearing to hang on a black frame.
+    await world.build_completed
+
     player = PlayerScene.instantiate()
     player.name = "Player"
     player.position = Vector3(0.0, 0.0, 2.8)
@@ -91,7 +99,7 @@ func _ready() -> void:
     add_child(sfx)
     hud.show_intro()
     _refresh_status()
-    _play_dev_studio_splash()
+    _finish_startup_splash()
 
 func _exit_tree() -> void:
     _stop_audio()
@@ -603,26 +611,38 @@ func _play_dev_studio_splash() -> void:
     add_child(layer)
 
     var background := ColorRect.new()
-    background.name = "WhiteBackground"
-    background.color = Color.WHITE
+    background.name = "LoadingBackground"
+    background.color = Color(0.025, 0.035, 0.055, 1.0)
     background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     background.mouse_filter = Control.MOUSE_FILTER_STOP
     layer.add_child(background)
+
+    var column := VBoxContainer.new()
+    column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    column.alignment = BoxContainer.ALIGNMENT_CENTER
+    column.add_theme_constant_override("separation", 12)
+    layer.add_child(column)
 
     var title := Label.new()
     title.name = "StudioTitle"
     title.text = "Dev Studio"
     title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-    title.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-    title.add_theme_font_size_override("font_size", 48)
-    title.add_theme_color_override("font_color", Color(0.02, 0.03, 0.05, 1.0))
-    title.modulate = Color(0.02, 0.03, 0.05, 0.0)
-    title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    layer.add_child(title)
+    title.add_theme_font_size_override("font_size", 42)
+    title.add_theme_color_override("font_color", Color(0.88, 0.94, 1.0))
+    column.add_child(title)
 
+    var status := Label.new()
+    status.name = "LoadingStatus"
+    status.text = "Загрузка 3D-сцены…"
+    status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    status.add_theme_font_size_override("font_size", 18)
+    status.add_theme_color_override("font_color", Color(0.55, 0.72, 0.86))
+    column.add_child(status)
+
+func _finish_startup_splash() -> void:
+    var layer := get_node_or_null("DevStudioSplash") as CanvasLayer
+    if not is_instance_valid(layer):
+        return
     var tween := create_tween()
-    tween.tween_property(title, "modulate", Color(0.02, 0.03, 0.05, 1.0), 0.5)
-    tween.tween_interval(1.2)
-    tween.tween_property(title, "modulate", Color(0.02, 0.03, 0.05, 0.0), 0.4)
+    tween.tween_property(layer, "modulate:a", 0.0, 0.35)
     tween.tween_callback(layer.queue_free)
