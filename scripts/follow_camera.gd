@@ -6,6 +6,8 @@ extends Camera3D
 var target: Node3D
 var _cutscene_active: bool = false
 var _cutscene_elapsed: float = 0.0
+var _cutscene_style: int = 0
+var _cutscene_subject: Node3D
 var _cutscene_start: Vector3
 var _cutscene_kitchen: Vector3
 var _cutscene_center: Vector3
@@ -15,6 +17,7 @@ func _ready() -> void:
     target = _find_target()
 
 func play_opening_cutscene() -> void:
+    _cutscene_style = 0
     target = _find_target()
     _cutscene_elapsed = 0.0
     _cutscene_start = global_position
@@ -28,9 +31,24 @@ func play_opening_cutscene() -> void:
         _cutscene_bedroom = Vector3(7.5, 7.5, -4.2)
     _cutscene_active = true
 
-func cancel_opening_cutscene() -> void:
+func play_return_cutscene(subject: Node3D) -> void:
+    target = _find_target()
+    _cutscene_style = 1
+    _cutscene_subject = subject
+    _cutscene_elapsed = 0.0
+    _cutscene_start = global_position
+    _cutscene_kitchen = subject.global_position + Vector3(-3.8, 3.6, 4.5)
+    _cutscene_center = subject.global_position + Vector3(0.0, 4.8, 6.5)
+    _cutscene_bedroom = target.global_position + Vector3(3.2, 3.6, 5.2)
+    _cutscene_active = true
+
+func cancel_cutscene() -> void:
     _cutscene_active = false
     _cutscene_elapsed = 0.0
+    _cutscene_style = 0
+
+func cancel_opening_cutscene() -> void:
+    cancel_cutscene()
 
 func _process(delta: float) -> void:
     if not is_instance_valid(target):
@@ -46,7 +64,13 @@ func _process(delta: float) -> void:
             global_position = _cutscene_kitchen.lerp(_cutscene_center, smoothstep(0.34, 0.68, progress))
         else:
             global_position = _cutscene_center.lerp(_cutscene_bedroom, smoothstep(0.68, 1.0, progress))
-        look_at(Vector3(0.0, 1.0, -1.0), Vector3.UP)
+        var look_target := Vector3(0.0, 1.0, -1.0)
+        if _cutscene_style == 1:
+            if progress < 0.7 and is_instance_valid(_cutscene_subject):
+                look_target = _cutscene_subject.global_position + Vector3(0.0, 1.0, 0.0)
+            else:
+                look_target = target.global_position + Vector3(0.0, 0.85, 0.0)
+        look_at(look_target, Vector3.UP)
         if _cutscene_elapsed >= cutscene_duration:
             _cutscene_active = false
         return

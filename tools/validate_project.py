@@ -89,7 +89,7 @@ for audio_path in audio_files:
 
 required_files = [
     "scenes/main.tscn", "scenes/player.tscn", "scenes/hud.tscn", "scenes/world.tscn",
-    "scenes/security_camera.tscn", "scripts/player.gd", "scripts/hud.gd",
+    "scenes/security_camera.tscn", "scenes/owner.tscn", "scripts/owner.gd", "scripts/player.gd", "scripts/hud.gd",
     "scripts/world_builder.gd", "scripts/follow_camera.gd", "scripts/security_camera.gd",
     "scripts/loot_animation.gd", "tests/gameplay_smoke_test.gd", "assets/title_art.svg", "assets/app_icon.svg",
     "audio/ambience.wav", "audio/pickup.wav", "audio/clean.wav", "audio/phone.wav",

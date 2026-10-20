@@ -2,6 +2,7 @@ extends Node3D
 
 const PlayerScene = preload("res://scenes/player.tscn")
 const HudScene = preload("res://scenes/hud.tscn")
+const OwnerScene = preload("res://scenes/owner.tscn")
 const WorldScene = preload("res://scenes/world.tscn")
 const MUSIC_STREAM = preload("res://audio/ambience.wav")
 const SOUND_PICKUP = preload("res://audio/pickup.wav")
@@ -35,6 +36,11 @@ var _camera_scan_elapsed: float = 0.0
 var _status_elapsed: float = 0.0
 var _camera_warning_shown: bool = false
 var _camera_visible: bool = false
+var _ending_cutscene_active: bool = false
+var _ending_cutscene_elapsed: float = 0.0
+var _pending_ending_heading: String = ""
+var _pending_ending_message: String = ""
+var _pending_ending_seconds: int = 0
 
 func _ready() -> void:
     _lighting()
@@ -75,6 +81,11 @@ func _process(delta: float) -> void:
         cutscene_elapsed += delta
         if cutscene_elapsed >= 4.6:
             _finish_cutscene()
+        return
+    if _ending_cutscene_active:
+        _ending_cutscene_elapsed += delta
+        if _ending_cutscene_elapsed >= 3.8:
+            _finish_ending_cutscene()
         return
     if not shift_started or ended or paused:
         return
@@ -190,6 +201,19 @@ func _finish_cutscene() -> void:
 func _skip_cutscene() -> void:
     if cutscene_playing:
         _finish_cutscene()
+    elif _ending_cutscene_active:
+        _finish_ending_cutscene()
+
+func _finish_ending_cutscene() -> void:
+    if not _ending_cutscene_active:
+        return
+    _ending_cutscene_active = false
+    _ending_cutscene_elapsed = 0.0
+    var follow_camera: Node = world.get_node_or_null("FollowCamera")
+    if is_instance_valid(follow_camera):
+        follow_camera.call("cancel_cutscene")
+    hud.hide_cutscene()
+    hud.show_ending(false, _pending_ending_heading, _pending_ending_message, _pending_ending_seconds)
 
 func _scan_security_cameras() -> void:
     _camera_visible = false
@@ -354,10 +378,33 @@ func _finish(success: bool, heading: String, message: String) -> void:
     hud.hide_cutscene()
     hud.hide_call()
     hud.show_pause(false)
-    hud.show_ending(success, heading, message, int(maxf(0.0, time_left)))
-    _play_sound("win" if success else "lose")
+    var seconds_left := int(maxf(0.0, time_left))
+    if success:
+        hud.show_ending(true, heading, message, seconds_left)
+        _play_sound("win")
+        if is_instance_valid(music):
+            music.volume_db = -30.0
+        return
+    # Show the owners returning before the loss panel: the door unlocks and an
+    # animated owner carrying keys enters the apartment while the camera cuts back.
+    _pending_ending_heading = heading
+    _pending_ending_message = message
+    _pending_ending_seconds = seconds_left
+    _ending_cutscene_active = true
+    _ending_cutscene_elapsed = 0.0
+    world.call("unlock_exit")
+    var owner_actor := OwnerScene.instantiate() as Node3D
+    owner_actor.name = "ReturningOwner"
+    owner_actor.position = Vector3(0.0, 0.0, 9.35)
+    add_child(owner_actor)
+    owner_actor.call("set_target", player)
+    var follow_camera: Node = world.get_node_or_null("FollowCamera")
+    if is_instance_valid(follow_camera):
+        follow_camera.call("play_return_cutscene", owner_actor)
+    hud.show_cutscene("Щёлкнул замок… Хозяева вернулись. Ночную смену пора заканчивать.")
+    _play_sound("lose")
     if is_instance_valid(music):
-        music.volume_db = -30.0 if success else -26.0
+        music.volume_db = -26.0
 
 func _refresh_status() -> void:
     if is_instance_valid(hud):
