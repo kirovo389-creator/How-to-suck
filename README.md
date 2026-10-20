@@ -15,7 +15,7 @@ Security cameras sweep the rooms and project a visible field of view onto the fl
 ## Controls
 
 - Touch joystick: walk around the selected location.
-- Action button: collect a valuable, clean a stain, or use the exit.
+- Action button: collect a valuable, clean a stain, or use the exit; solid walls and furniture block interactions.
 - Crouch button: move more slowly and reduce your visible height; tap again to stand.
 - Sprint button: toggle faster movement; stamina drains while moving and recovers when you stop sprinting.
 - Pause: freeze the world and audio, then resume or restart the shift.

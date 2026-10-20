@@ -83,6 +83,10 @@ require('func _toggle_sprint()' in game and 'func _update_stamina(delta: float)'
         'func set_sprinting(enabled: bool)' in player and
         'alert_gain *= 1.6' in game,
         "Sprint includes mobile input, stamina depletion/recovery UI and higher camera alert gain")
+require('func _has_interaction_line_of_sight(target: Node3D) -> bool' in game and
+        'PhysicsRayQueryParameters3D.create(origin, destination)' in game and
+        'if distance < best_distance and _has_interaction_line_of_sight(item)' in game,
+        "Nearby objects can only be used with an unobstructed interaction path")
 require('func play_interaction(kind: String)' in player and
         'func _update_interaction_animation(delta: float)' in player and
         'player.call("play_interaction", "loot")' in game and

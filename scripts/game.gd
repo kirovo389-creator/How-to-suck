@@ -394,15 +394,31 @@ func _remove_interactable(target: Node3D) -> void:
     tween.tween_property(target, "scale", Vector3(0.04, 0.04, 0.04), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
     tween.tween_callback(target.queue_free)
 
+func _has_interaction_line_of_sight(target: Node3D) -> bool:
+    if not is_instance_valid(player) or not is_instance_valid(target):
+        return false
+    var origin := player.global_position + Vector3(0.0, 1.0, 0.0)
+    var target_kind := str(target.get_meta("kind", ""))
+    var target_height := 0.15 if target_kind == "dirt" else 0.28
+    var destination := target.global_position + Vector3(0.0, target_height, 0.0)
+    if origin.distance_squared_to(destination) < 0.01:
+        return true
+    var query := PhysicsRayQueryParameters3D.create(origin, destination)
+    query.exclude = [player.get_rid()]
+    query.collision_mask = 1
+    return get_world_3d().direct_space_state.intersect_ray(query).is_empty()
+
 func _nearest_interactable() -> Node3D:
     var best: Node3D
     var best_distance: float = 2.45
+    var player_position := Vector2(player.global_position.x, player.global_position.z)
     for candidate in get_tree().get_nodes_in_group("interactable"):
         if not is_instance_valid(candidate) or not candidate is Node3D:
             continue
         var item := candidate as Node3D
-        var distance: float = player.global_position.distance_to(item.global_position)
-        if distance < best_distance:
+        var item_position := Vector2(item.global_position.x, item.global_position.z)
+        var distance: float = player_position.distance_to(item_position)
+        if distance < best_distance and _has_interaction_line_of_sight(item):
             best = item
             best_distance = distance
     return best

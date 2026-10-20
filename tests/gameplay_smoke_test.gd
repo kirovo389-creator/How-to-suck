@@ -21,6 +21,45 @@ func _run_tests() -> void:
         await _cleanup_and_quit(main, 1)
         return
     _check(world.get_node_or_null("FollowCamera") is Camera3D, "follow camera exists")
+    var initial_player_position := player.global_position
+    var existing_interactables := get_nodes_in_group("interactable")
+    for item in existing_interactables:
+        if is_instance_valid(item):
+            item.remove_from_group("interactable")
+    var test_wall := StaticBody3D.new()
+    test_wall.name = "InteractionOcclusionTestWall"
+    test_wall.position = Vector3(-7.0, 1.0, 0.0)
+    var test_wall_collision := CollisionShape3D.new()
+    var test_wall_shape := BoxShape3D.new()
+    test_wall_shape.size = Vector3(0.5, 2.4, 3.0)
+    test_wall_collision.shape = test_wall_shape
+    test_wall.add_child(test_wall_collision)
+    world.add_child(test_wall)
+    var probe_target := Node3D.new()
+    probe_target.name = "OccludedInteractionProbe"
+    probe_target.position = Vector3(-6.0, 1.45, 0.0)
+    probe_target.set_meta("kind", "loot")
+    world.add_child(probe_target)
+    probe_target.add_to_group("interactable")
+    player.global_position = Vector3(-8.0, 0.0, 0.0)
+    await physics_frame
+    _check(not bool(main.call("_has_interaction_line_of_sight", probe_target)),
+        "a wall blocks direct interaction with a hidden object")
+    _check(main.call("_nearest_interactable") == null,
+        "nearest-interactable refuses objects behind a wall")
+    probe_target.position = Vector3(-8.85, 1.45, 0.0)
+    await physics_frame
+    _check(bool(main.call("_has_interaction_line_of_sight", probe_target)),
+        "clear sight restores object interaction")
+    _check(main.call("_nearest_interactable") == probe_target,
+        "a nearby unobstructed object can be selected")
+    for item in existing_interactables:
+        if is_instance_valid(item):
+            item.add_to_group("interactable")
+    probe_target.queue_free()
+    test_wall.queue_free()
+    player.global_position = initial_player_position
+    await process_frame
     var exit_target := world.get_node_or_null("ExitInteraction") as Node3D
     if not is_instance_valid(exit_target):
         _check(false, "exit interaction exists")
