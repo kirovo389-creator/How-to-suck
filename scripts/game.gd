@@ -161,7 +161,7 @@ func _process(delta: float) -> void:
         call_active = true
         call_response_elapsed = 0.0
         player.set_mobile_direction(Vector2.ZERO)
-        player.set_physics_process(false)
+        _sync_player_processing()
         hud.show_call("Управляющий магазина: «Камеры заметили движение. Я скоро вернусь. Ты ещё убираешь?»" if level_id == "store" else "Хозяева: «На камерах какое-то движение. Мы скоро вернёмся. Ты ещё убираешь?»")
         _play_sound("phone")
     if call_active:
@@ -510,7 +510,11 @@ func _finish(success: bool, heading: String, message: String) -> void:
     call_active = false
     player.set_mobile_direction(Vector2.ZERO)
     player.call("set_crouching", false)
+    player.call("set_sprinting", false)
+    sprint_enabled = false
     hud.call("set_crouch_state", false)
+    hud.call("set_sprint_state", false)
+    hud.call("update_stamina", stamina, false)
     player.set_physics_process(false)
     hud.hide_cutscene()
     hud.hide_call()
