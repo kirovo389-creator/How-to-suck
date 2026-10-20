@@ -21,6 +21,7 @@ func _ready() -> void:
     for arm in _arms:
         _rest_arm_rotations.append(arm.rotation)
     _collider = CollisionShape3D.new()
+    _collider.name = "PlayerCollider"
     _capsule = CapsuleShape3D.new()
     _capsule.radius = 0.29
     _capsule.height = 1.58
