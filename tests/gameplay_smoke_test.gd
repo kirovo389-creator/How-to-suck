@@ -42,6 +42,16 @@ func _run_tests() -> void:
     player.set_mobile_direction(Vector2.ZERO)
     _check(player.global_position.x > player_start.x, "virtual joystick moves the player")
 
+    # Return the game to a clean initial state after isolated phone-choice checks.
+    main.set("alert_level", 0.0)
+    main.set("time_left", 240.0)
+    main.set("call_elapsed", 0.0)
+    main.set("call_response_elapsed", 0.0)
+    main.set("call_active", false)
+    main.set("call_shown", false)
+    main.set("_camera_visible", false)
+    main.set("_camera_warning_shown", false)
+
     var loot: Array[Node3D] = []
     var dirt: Array[Node3D] = []
     for candidate in get_nodes_in_group("interactable"):
@@ -65,13 +75,11 @@ func _run_tests() -> void:
     for item in loot:
         player.global_position = item.global_position
         main.call("_on_action_pressed")
-        await process_frame
     _check(int(main.get("loot_found")) == 5, "all five valuables can be collected")
 
     for item in dirt:
         player.global_position = item.global_position
         main.call("_on_action_pressed")
-        await process_frame
     _check(int(main.get("dirt_remaining")) == 0, "all seven stains can be cleaned")
 
     var exit_target := world.get_node_or_null("ExitInteraction") as Node3D
