@@ -510,12 +510,20 @@ func show_pause(visible: bool) -> void:
         _pause_overlay.hide()
         _pause_panel.hide()
 
-func show_ending(success: bool, heading: String, message: String, seconds_left: int) -> void:
+func show_ending(success: bool, heading: String, message: String, seconds_left: int, alert: float = 0.0) -> void:
     _ending_heading.text = heading
     _ending_heading.add_theme_color_override("font_color", Color(0.35, 0.88, 0.62) if success else Color(1.0, 0.38, 0.28))
     var details := message
     if success:
+        var rank := "C"
+        if seconds_left >= 135 and alert <= 20.0:
+            rank = "S"
+        elif seconds_left >= 95 and alert <= 45.0:
+            rank = "A"
+        elif seconds_left >= 55:
+            rank = "B"
         details += "\nОсталось времени: %d:%02d." % [seconds_left / 60, seconds_left % 60]
+        details += "\nРанг смены: %s  •  Подозрение: %d%%" % [rank, int(alert)]
     _ending_body.text = details
     _ending_overlay.show()
     _ending_panel.show()

@@ -38,6 +38,7 @@ var _camera_warning_shown: bool = false
 var _camera_visible: bool = false
 var _ending_cutscene_active: bool = false
 var _ending_cutscene_elapsed: float = 0.0
+var _pending_ending_success: bool = false
 var _pending_ending_heading: String = ""
 var _pending_ending_message: String = ""
 var _pending_ending_seconds: int = 0
@@ -213,7 +214,7 @@ func _finish_ending_cutscene() -> void:
     if is_instance_valid(follow_camera):
         follow_camera.call("cancel_cutscene")
     hud.hide_cutscene()
-    hud.show_ending(false, _pending_ending_heading, _pending_ending_message, _pending_ending_seconds)
+    hud.show_ending(_pending_ending_success, _pending_ending_heading, _pending_ending_message, _pending_ending_seconds, alert_level)
 
 func _scan_security_cameras() -> void:
     _camera_visible = false
@@ -379,26 +380,28 @@ func _finish(success: bool, heading: String, message: String) -> void:
     hud.hide_call()
     hud.show_pause(false)
     var seconds_left := int(maxf(0.0, time_left))
-    if success:
-        hud.show_ending(true, heading, message, seconds_left)
-        _play_sound("win")
-        if is_instance_valid(music):
-            music.volume_db = -30.0
-        return
-    # Show the owners returning before the loss panel: the door unlocks and an
-    # animated owner carrying keys enters the apartment while the camera cuts back.
+    _pending_ending_success = success
     _pending_ending_heading = heading
     _pending_ending_message = message
     _pending_ending_seconds = seconds_left
     _ending_cutscene_active = true
     _ending_cutscene_elapsed = 0.0
     world.call("unlock_exit")
+    var follow_camera: Node = world.get_node_or_null("FollowCamera")
+    if success:
+        if is_instance_valid(follow_camera):
+            follow_camera.call("play_escape_cutscene")
+        hud.show_cutscene("Ты выходишь в ночной двор. За спиной закрывается дверь — смена завершена.")
+        _play_sound("win")
+        if is_instance_valid(music):
+            music.volume_db = -30.0
+        return
+    # On failure, let the owner physically return to the apartment before the results panel.
     var owner_actor := OwnerScene.instantiate() as Node3D
     owner_actor.name = "ReturningOwner"
     owner_actor.position = Vector3(0.0, 0.0, 9.35)
     add_child(owner_actor)
     owner_actor.call("set_target", player)
-    var follow_camera: Node = world.get_node_or_null("FollowCamera")
     if is_instance_valid(follow_camera):
         follow_camera.call("play_return_cutscene", owner_actor)
     hud.show_cutscene("Щёлкнул замок… Хозяева вернулись. Ночную смену пора заканчивать.")

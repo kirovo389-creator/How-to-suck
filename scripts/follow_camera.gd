@@ -42,6 +42,22 @@ func play_return_cutscene(subject: Node3D) -> void:
     _cutscene_bedroom = target.global_position + Vector3(3.2, 3.6, 5.2)
     _cutscene_active = true
 
+func play_escape_cutscene() -> void:
+    target = _find_target()
+    _cutscene_style = 2
+    _cutscene_subject = target
+    _cutscene_elapsed = 0.0
+    _cutscene_start = global_position
+    if is_instance_valid(target):
+        _cutscene_kitchen = target.global_position + Vector3(-2.6, 4.1, 4.2)
+        _cutscene_center = target.global_position + Vector3(0.0, 5.4, 8.0)
+        _cutscene_bedroom = target.global_position + Vector3(3.8, 3.8, 11.0)
+    else:
+        _cutscene_kitchen = Vector3(-2.6, 4.1, 12.0)
+        _cutscene_center = Vector3(0.0, 5.4, 16.0)
+        _cutscene_bedroom = Vector3(3.8, 3.8, 19.0)
+    _cutscene_active = true
+
 func cancel_cutscene() -> void:
     _cutscene_active = false
     _cutscene_elapsed = 0.0
@@ -70,6 +86,8 @@ func _process(delta: float) -> void:
                 look_target = _cutscene_subject.global_position + Vector3(0.0, 1.0, 0.0)
             else:
                 look_target = target.global_position + Vector3(0.0, 0.85, 0.0)
+        elif _cutscene_style == 2:
+            look_target = target.global_position + Vector3(0.0, 0.9, 0.0)
         look_at(look_target, Vector3.UP)
         if _cutscene_elapsed >= cutscene_duration:
             _cutscene_active = false
