@@ -11,19 +11,22 @@ var _interaction_kind: String = ""
 var _rest_arm_rotations: Array[Vector3] = []
 var is_crouching: bool = false
 var _standing_speed: float = 4.0
+var _visual_root: Node3D
+var _collider: CollisionShape3D
+var _capsule: CapsuleShape3D
 
 func _ready() -> void:
     _standing_speed = move_speed
     _make_character()
     for arm in _arms:
         _rest_arm_rotations.append(arm.rotation)
-    var collider := CollisionShape3D.new()
-    var capsule := CapsuleShape3D.new()
-    capsule.radius = 0.29
-    capsule.height = 1.58
-    collider.shape = capsule
-    collider.position.y = 0.79
-    add_child(collider)
+    _collider = CollisionShape3D.new()
+    _capsule = CapsuleShape3D.new()
+    _capsule.radius = 0.29
+    _capsule.height = 1.58
+    _collider.shape = _capsule
+    _collider.position.y = 0.79
+    add_child(_collider)
 
 func set_mobile_direction(direction: Vector2) -> void:
     mobile_direction = direction.limit_length(1.0)
@@ -31,7 +34,11 @@ func set_mobile_direction(direction: Vector2) -> void:
 func set_crouching(enabled: bool) -> void:
     is_crouching = enabled
     move_speed = _standing_speed * 0.58 if enabled else _standing_speed
-    scale.y = 0.72 if enabled else 1.0
+    if is_instance_valid(_visual_root):
+        _visual_root.scale.y = 0.72 if enabled else 1.0
+    if is_instance_valid(_capsule) and is_instance_valid(_collider):
+        _capsule.height = 1.12 if enabled else 1.58
+        _collider.position.y = 0.56 if enabled else 0.79
 
 func _physics_process(delta: float) -> void:
     var keyboard := Vector2(
@@ -91,16 +98,19 @@ func _update_interaction_animation(delta: float) -> void:
             _arms[index].rotation = _rest_arm_rotations[index]
 
 func _make_character() -> void:
+    _visual_root = Node3D.new()
+    _visual_root.name = "CharacterVisual"
+    add_child(_visual_root)
     var uniform := Color(0.055, 0.27, 0.31)
     var dark := Color(0.035, 0.045, 0.06)
     var skin := Color(0.72, 0.48, 0.34)
     var shoe := Color(0.025, 0.03, 0.04)
     _torso = Node3D.new()
     _torso.position = Vector3(0.0, 1.02, 0.0)
-    add_child(_torso)
+    _visual_root.add_child(_torso)
     _box(_torso, Vector3(0.0, 0.0, 0.0), Vector3(0.56, 0.62, 0.34), uniform)
     _box(_torso, Vector3(0.0, -0.34, 0.0), Vector3(0.58, 0.12, 0.36), dark)
-    _sphere(self, Vector3(0.0, 1.52, 0.015), Vector3(0.225, 0.245, 0.22), skin)
+    _sphere(_visual_root, Vector3(0.0, 1.52, 0.015), Vector3(0.225, 0.245, 0.22), skin)
     _sphere(self, Vector3(0.0, 1.69, -0.02), Vector3(0.235, 0.105, 0.235), Color(0.075, 0.045, 0.028))
     _sphere(self, Vector3(0.0, 1.59, 0.213), Vector3(0.025, 0.02, 0.018), Color(0.12, 0.07, 0.05))
     for x in [-0.075, 0.075]:
@@ -109,19 +119,19 @@ func _make_character() -> void:
         var side := -1.0 if index == 0 else 1.0
         var hip := Node3D.new()
         hip.position = Vector3(side * 0.17, 0.69, 0.0)
-        add_child(hip)
+        _visual_root.add_child(hip)
         _box(hip, Vector3(0.0, -0.22, 0.0), Vector3(0.19, 0.48, 0.22), dark)
         _box(hip, Vector3(0.0, -0.48, 0.055), Vector3(0.23, 0.12, 0.34), shoe)
         _legs.append(hip)
         var shoulder := Node3D.new()
         shoulder.position = Vector3(side * 0.35, 1.28, 0.0)
-        add_child(shoulder)
+        _visual_root.add_child(shoulder)
         _box(shoulder, Vector3(0.0, -0.21, 0.0), Vector3(0.16, 0.43, 0.17), uniform)
         _sphere(shoulder, Vector3(0.0, -0.43, 0.035), Vector3(0.09, 0.095, 0.09), skin)
         _arms.append(shoulder)
     # Work belt, shoulder strap and a small utility pouch.
     _box(_torso, Vector3(0.23, -0.18, 0.02), Vector3(0.1, 0.27, 0.11), Color(0.6, 0.39, 0.17))
-    _box(self, Vector3(-0.2, 1.0, -0.2), Vector3(0.28, 0.42, 0.15), Color(0.2, 0.22, 0.2))
+    _box(_visual_root, Vector3(-0.2, 1.0, -0.2), Vector3(0.28, 0.42, 0.15), Color(0.2, 0.22, 0.2))
     _box(self, Vector3(0.4, 0.47, 0.22), Vector3(0.055, 0.78, 0.055), Color(0.5, 0.34, 0.18))
     _box(self, Vector3(0.4, 0.09, 0.22), Vector3(0.29, 0.08, 0.23), Color(0.22, 0.64, 0.75))
 
