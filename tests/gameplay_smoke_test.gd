@@ -29,6 +29,10 @@ func _run_tests() -> void:
     var hud := main.get("hud") as CanvasLayer
     var hud_root := hud.get("_root") as Control
     _check(hud_root.get_node_or_null("CrouchButton") is Button, "mobile HUD exposes the crouch control")
+    _check(hud_root.get_node_or_null("SprintButton") is Button, "mobile HUD exposes the sprint control")
+    _check(hud.has_signal("sprint_pressed"), "HUD emits sprint input")
+    _check(main.has_method("_toggle_sprint"), "game handles sprint activation")
+    _check(player.has_method("set_sprinting"), "player supports sprint movement")
     hud.call("_choose_location", "store")
     await process_frame
     world = main.get("world") as Node3D
