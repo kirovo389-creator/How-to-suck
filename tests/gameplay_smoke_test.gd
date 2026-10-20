@@ -207,7 +207,8 @@ func _run_tests() -> void:
     await physics_frame
     await physics_frame
     _check(bool(player.get("is_moving")), "player movement state updates before sprint stamina is measured")
-    var stamina_bar := hud_root.find_child("StaminaBar", true, false) as ProgressBar
+    var stamina_bar := hud.get("_stamina_bar") as ProgressBar
+    _check(is_instance_valid(stamina_bar), "HUD has a live stamina progress bar")
     var stamina_before_sprint: float = float(main.get("stamina"))
     main.call("_process", 0.25)
     _check(float(main.get("stamina")) < stamina_before_sprint, "moving while sprinting drains stamina")
