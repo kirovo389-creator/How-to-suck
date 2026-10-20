@@ -1,113 +1,329 @@
 extends Node3D
+
 const PlayerScene = preload("res://scenes/player.tscn")
 const HudScene = preload("res://scenes/hud.tscn")
-const WorldBuilder = preload("res://scripts/world_builder.gd")
-var player
-var hud
-var loot_found := 0
-var loot_total := 5
-var dirt_remaining := 7
-var time_left := 240.0
-var shift_started := false
-var call_timer := 0.0
-var call_active := false
-var ended := false
+const WorldScene = preload("res://scenes/world.tscn")
+const MUSIC_STREAM = preload("res://audio/ambience.wav")
+const SOUND_PICKUP = preload("res://audio/pickup.wav")
+const SOUND_CLEAN = preload("res://audio/clean.wav")
+const SOUND_PHONE = preload("res://audio/phone.wav")
+const SOUND_ALERT = preload("res://audio/alert.wav")
+const SOUND_WIN = preload("res://audio/win.wav")
+const SOUND_LOSE = preload("res://audio/lose.wav")
+const SOUND_CLICK = preload("res://audio/click.wav")
 
-func _ready():
+var player: CharacterBody3D
+var hud: CanvasLayer
+var world: Node3D
+var music: AudioStreamPlayer
+var sfx: AudioStreamPlayer
+var loot_found: int = 0
+var loot_total: int = 5
+var dirt_remaining: int = 7
+var time_left: float = 240.0
+var alert_level: float = 0.0
+var shift_started: bool = false
+var paused: bool = false
+var ended: bool = false
+var call_shown: bool = false
+var call_active: bool = false
+var call_elapsed: float = 0.0
+var call_response_elapsed: float = 0.0
+var _camera_scan_elapsed: float = 0.0
+var _status_elapsed: float = 0.0
+var _camera_warning_shown: bool = false
+var _camera_visible: bool = false
+
+func _ready() -> void:
     _lighting()
-    var world = WorldBuilder.new()
-    world.name = "ApartmentLevel"
+    world = WorldScene.instantiate()
+    world.name = "Apartment"
     add_child(world)
     player = PlayerScene.instantiate()
-    player.position = Vector3(0,0,5)
+    player.name = "Player"
+    player.position = Vector3(0.0, 0.0, 7.0)
     add_child(player)
     hud = HudScene.instantiate()
     add_child(hud)
-    hud.action_pressed.connect(_action)
+    hud.action_pressed.connect(_on_action_pressed)
     hud.movement_changed.connect(player.set_mobile_direction)
     hud.call_answered.connect(_answer_call)
+    hud.call_declined.connect(_decline_call)
+    hud.pause_pressed.connect(_toggle_pause)
+    hud.resume_pressed.connect(_resume_game)
+    hud.restart_pressed.connect(_restart_game)
+    music = AudioStreamPlayer.new()
+    music.name = "AmbientMusic"
+    music.stream = MUSIC_STREAM
+    music.volume_db = -22.0
+    add_child(music)
+    music.play()
+    music.finished.connect(_loop_music)
+    sfx = AudioStreamPlayer.new()
+    sfx.name = "SoundEffects"
+    sfx.volume_db = -3.0
+    add_child(sfx)
     hud.show_intro()
-    _status()
+    _refresh_status()
 
-func _lighting():
-    var env = WorldEnvironment.new()
-    var e = Environment.new()
-    e.background_mode = Environment.BG_SKY
-    var sky = Sky.new()
-    var sm = ProceduralSkyMaterial.new()
-    sm.sky_top_color = Color(0.015,0.025,0.07)
-    sm.sky_horizon_color = Color(0.12,0.14,0.19)
-    sky.sky_material = sm
-    e.sky = sky
-    e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-    e.ambient_light_color = Color(0.38,0.42,0.55)
-    e.ambient_light_energy = 0.55
-    env.environment = e
-    add_child(env)
-    var sun = DirectionalLight3D.new()
-    sun.rotation_degrees = Vector3(-48,-28,0)
-    sun.light_color = Color(0.78,0.83,1)
-    sun.light_energy = 0.8
-    sun.shadow_enabled = true
-    add_child(sun)
-
-func _process(delta):
-    if not shift_started or ended or call_active:
+func _process(delta: float) -> void:
+    if not shift_started or ended or paused:
         return
     time_left -= delta
-    call_timer += delta
-    if loot_found >= loot_total and dirt_remaining > 0:
-        hud.set_task("Уборка: очисти все пятна")
-    if call_timer > 55.0:
+    call_elapsed += delta
+    _camera_scan_elapsed += delta
+    if _camera_scan_elapsed >= 0.12:
+        _camera_scan_elapsed = 0.0
+        _scan_security_cameras()
+    if _camera_visible:
+        alert_level = minf(100.0, alert_level + (12.0 + float(loot_found) * 1.6) * delta)
+    else:
+        alert_level = maxf(0.0, alert_level - 8.0 * delta)
+    if alert_level >= 32.0 and not _camera_warning_shown:
+        _camera_warning_shown = true
+        hud.toast("КАМЕРА ЗАМЕТИЛА ДВИЖЕНИЕ — СКРОЙСЯ!")
+        _play_sound("alert")
+    if alert_level >= 100.0:
+        _finish(false, "СИГНАЛИЗАЦИЯ", "Тревога достигла максимума. Хозяева уже вызвали охрану.")
+        return
+    if not call_shown and (call_elapsed >= 62.0 or alert_level >= 42.0):
+        call_shown = true
         call_active = true
-        hud.show_call("Мы видели движение на камерах. Уже едем домой!")
-    if time_left <= 0:
-        ended = true
-        hud.show_ending(false)
+        call_response_elapsed = 0.0
+        hud.show_call("Хозяева: «На камерах какое-то движение. Мы скоро вернёмся. Ты ещё убираешь?»")
+        _play_sound("phone")
+    if call_active:
+        call_response_elapsed += delta
+        if call_response_elapsed >= 10.0:
+            call_active = false
+            hud.hide_call()
+            alert_level = minf(100.0, alert_level + 22.0)
+            hud.toast("Звонок пропущен. Хозяева ускорили возвращение.")
+            _play_sound("alert")
+    if time_left <= 0.0:
+        _finish(false, "ВРЕМЯ ВЫШЛО", "Ты не успел закончить смену до возвращения хозяев.")
+        return
+    _status_elapsed += delta
+    if _status_elapsed >= 0.15:
+        _status_elapsed = 0.0
+        _refresh_status()
+        _refresh_action_hint()
 
-func _action():
+func _lighting() -> void:
+    var world_environment := WorldEnvironment.new()
+    var environment := Environment.new()
+    environment.background_mode = Environment.BG_SKY
+    var sky := Sky.new()
+    var sky_material := ProceduralSkyMaterial.new()
+    sky_material.sky_top_color = Color(0.012, 0.021, 0.055)
+    sky_material.sky_horizon_color = Color(0.12, 0.15, 0.21)
+    sky_material.ground_bottom_color = Color(0.025, 0.03, 0.045)
+    sky_material.ground_horizon_color = Color(0.1, 0.12, 0.16)
+    sky_material.energy_multiplier = 0.7
+    sky.sky_material = sky_material
+    environment.sky = sky
+    environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+    environment.ambient_light_color = Color(0.42, 0.46, 0.56)
+    environment.ambient_light_energy = 0.72
+    environment.reflected_light_source = Environment.REFLECTION_SOURCE_BG
+    environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+    world_environment.environment = environment
+    add_child(world_environment)
+    var moonlight := DirectionalLight3D.new()
+    moonlight.rotation_degrees = Vector3(-48.0, -28.0, 0.0)
+    moonlight.light_color = Color(0.68, 0.76, 1.0)
+    moonlight.light_energy = 0.72
+    moonlight.shadow_enabled = true
+    moonlight.directional_shadow_max_distance = 38.0
+    add_child(moonlight)
+    var kitchen_light := OmniLight3D.new()
+    kitchen_light.position = Vector3(-6.5, 3.1, -5.2)
+    kitchen_light.light_color = Color(0.68, 0.79, 1.0)
+    kitchen_light.light_energy = 0.42
+    kitchen_light.omni_range = 7.5
+    kitchen_light.shadow_enabled = false
+    add_child(kitchen_light)
+    var living_light := OmniLight3D.new()
+    living_light.position = Vector3(1.7, 3.3, 1.6)
+    living_light.light_color = Color(1.0, 0.72, 0.46)
+    living_light.light_energy = 0.58
+    living_light.omni_range = 8.0
+    living_light.shadow_enabled = false
+    add_child(living_light)
+    var bedroom_light := OmniLight3D.new()
+    bedroom_light.position = Vector3(7.3, 3.1, -5.0)
+    bedroom_light.light_color = Color(0.66, 0.69, 1.0)
+    bedroom_light.light_energy = 0.36
+    bedroom_light.omni_range = 7.0
+    bedroom_light.shadow_enabled = false
+    add_child(bedroom_light)
+
+func _scan_security_cameras() -> void:
+    _camera_visible = false
+    for camera in get_tree().get_nodes_in_group("security_cameras"):
+        if not is_instance_valid(camera):
+            continue
+        var can_see := camera.can_see(player)
+        camera.set_alert_active(can_see)
+        if can_see:
+            _camera_visible = true
+
+func _on_action_pressed() -> void:
+    if ended or paused or call_active:
+        return
     if not shift_started:
         shift_started = true
         hud.hide_intro()
-        hud.toast("Найди 5 ценностей, затем убери 7 пятен.")
+        hud.toast("Сначала собери 5 ценностей, затем убери 7 пятен и выйди через дверь.")
+        _play_sound("click")
+        _refresh_status()
+        _refresh_action_hint()
         return
-    if call_active:
-        return
-    var target = _nearest_interactable()
+    var target := _nearest_interactable()
     if target == null:
-        hud.toast("Подойди ближе к предмету или пятну.")
+        hud.toast("Подойди ближе к предмету, пятну или выходу.")
+        _play_sound("click")
         return
-    var kind = target.get_meta("kind","")
-    target.queue_free()
+    var kind: String = str(target.get_meta("kind", ""))
     if kind == "loot":
+        var label := str(target.get_meta("label", "Ценность"))
+        target.queue_free()
         loot_found += 1
-        hud.toast("Ценность найдена: %d/%d" % [loot_found,loot_total])
+        hud.toast("%s — найдено %d из %d" % [label, loot_found, loot_total])
+        _play_sound("pickup")
+        if loot_found == loot_total:
+            hud.set_task("Все ценности найдены. Теперь убери 7 пятен.")
+        _refresh_status()
     elif kind == "dirt":
+        if loot_found < loot_total:
+            hud.toast("Сначала найди все 5 ценностей. Уборка — последний этап.")
+            _play_sound("click")
+            return
+        target.queue_free()
         dirt_remaining -= 1
         hud.toast("Пятно убрано. Осталось: %d" % dirt_remaining)
+        _play_sound("clean")
         if dirt_remaining <= 0:
-            ended = true
-            hud.show_ending(true)
-    _status()
+            world.unlock_exit()
+            hud.set_task("Квартира чистая. Доберись до зелёной двери и выйди.")
+            hud.toast("Готово! Выход открыт — доберись до двери.")
+        _refresh_status()
+    elif kind == "exit":
+        if loot_found < loot_total or dirt_remaining > 0:
+            if loot_found < loot_total:
+                hud.toast("Нельзя уходить: найди ещё %d ценностей." % (loot_total - loot_found))
+            else:
+                hud.toast("Сначала убери ещё %d пятен." % dirt_remaining)
+            return
+        _finish(true, "СМЕНА ЗАВЕРШЕНА", "Ты забрал ценности, убрал квартиру и ушёл до возвращения хозяев.")
+    _refresh_action_hint()
 
-func _nearest_interactable():
-    var best = null
-    var best_dist = 2.8
+func _nearest_interactable() -> Node3D:
+    var best: Node3D
+    var best_distance: float = 2.45
     for item in get_tree().get_nodes_in_group("interactable"):
         if not is_instance_valid(item):
             continue
-        var d = player.global_position.distance_to(item.global_position)
-        if d < best_dist:
+        var distance := player.global_position.distance_to(item.global_position)
+        if distance < best_distance:
             best = item
-            best_dist = d
+            best_distance = distance
     return best
 
-func _answer_call():
-    call_active = false
-    call_timer = -999.0
-    time_left = maxf(25.0,time_left-15.0)
-    hud.toast("Звонок завершён. Быстрее заканчивай смену!")
+func _refresh_action_hint() -> void:
+    if not shift_started or ended:
+        hud.set_action_hint("НАЧАТЬ СМЕНУ")
+        return
+    if call_active:
+        hud.set_action_hint("ТЕЛЕФОН ЗВОНИТ")
+        return
+    var target := _nearest_interactable()
+    if target == null:
+        hud.set_action_hint("ВЗЯТЬ / МЫТЬ")
+        return
+    var kind := str(target.get_meta("kind", ""))
+    if kind == "loot":
+        hud.set_action_hint("ВЗЯТЬ: " + str(target.get_meta("label", "ЦЕННОСТЬ")).to_upper())
+    elif kind == "dirt":
+        hud.set_action_hint("УБРАТЬ ПЯТНО" if loot_found >= loot_total else "СНАЧАЛА ЦЕННОСТИ")
+    elif kind == "exit":
+        hud.set_action_hint("ВЫЙТИ" if loot_found >= loot_total and dirt_remaining == 0 else "ВЫХОД ЗАКРЫТ")
+    else:
+        hud.set_action_hint("ВЗАИМОДЕЙСТВИЕ")
 
-func _status():
+func _answer_call() -> void:
+    if not call_active:
+        return
+    call_active = false
+    hud.hide_call()
+    alert_level = maxf(0.0, alert_level - 24.0)
+    time_left = minf(240.0, time_left + 8.0)
+    hud.toast("Ты успокоил хозяев. Тревога снизилась, но время продолжает идти.")
+    _play_sound("click")
+    _refresh_status()
+
+func _decline_call() -> void:
+    if not call_active:
+        return
+    call_active = false
+    hud.hide_call()
+    alert_level = minf(100.0, alert_level + 18.0)
+    hud.toast("Ты сбросил звонок. Подозрения выросли.")
+    _play_sound("alert")
+    _refresh_status()
+
+func _toggle_pause() -> void:
+    if not shift_started or ended:
+        return
+    if paused:
+        _resume_game()
+    else:
+        paused = true
+        player.set_mobile_direction(Vector2.ZERO)
+        hud.show_pause(true)
+
+func _resume_game() -> void:
+    paused = false
+    hud.show_pause(false)
+    player.set_mobile_direction(Vector2.ZERO)
+
+func _restart_game() -> void:
+    get_tree().reload_current_scene()
+
+func _finish(success: bool, heading: String, message: String) -> void:
+    if ended:
+        return
+    ended = true
+    paused = false
+    call_active = false
+    player.set_mobile_direction(Vector2.ZERO)
+    hud.hide_call()
+    hud.show_pause(false)
+    hud.show_ending(success, heading, message, int(maxf(0.0, time_left)))
+    _play_sound("win" if success else "lose")
+    if is_instance_valid(music):
+        music.volume_db = -30.0 if success else -26.0
+
+func _refresh_status() -> void:
     if is_instance_valid(hud):
-        hud.update_status(loot_found,loot_total,dirt_remaining,int(maxf(0,time_left)))
+        hud.update_status(loot_found, loot_total, dirt_remaining, int(maxf(0.0, time_left)), alert_level, shift_started)
+
+func _play_sound(sound_name: String) -> void:
+    if not is_instance_valid(sfx):
+        return
+    var streams := {
+        "pickup": SOUND_PICKUP,
+        "clean": SOUND_CLEAN,
+        "phone": SOUND_PHONE,
+        "alert": SOUND_ALERT,
+        "win": SOUND_WIN,
+        "lose": SOUND_LOSE,
+        "click": SOUND_CLICK
+    }
+    if streams.has(sound_name):
+        sfx.stream = streams[sound_name]
+        sfx.play()
+
+func _loop_music() -> void:
+    if is_instance_valid(music) and not ended:
+        music.play()
