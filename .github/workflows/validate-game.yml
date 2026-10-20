@@ -47,8 +47,15 @@ jobs:
             echo "Godot reported an import or parse error."
             exit 1
           fi
-      - name: Run gameplay smoke test
-        run: godot --headless --audio-driver Dummy --path . --script res://tests/gameplay_smoke_test.gd
+      - name: Run gameplay smoke test with diagnostics
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --verbose --headless --audio-driver Dummy --path . --script res://tests/gameplay_smoke_test.gd 2>&1 | tee gameplay-test.log
+          if grep -E "SCRIPT ERROR|Parse Error|FAIL:" gameplay-test.log; then
+            echo "Gameplay regression test reported an error."
+            exit 1
+          fi
       - name: Launch main scene for runtime smoke test
         shell: bash
         run: |
