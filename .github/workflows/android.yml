@@ -8,6 +8,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+      - name: Validate project files
+        run: python3 tools/validate_project.py
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

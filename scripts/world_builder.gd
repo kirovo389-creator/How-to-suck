@@ -236,6 +236,8 @@ func _item(label: String, kind: String, position_value: Vector3, size: Vector3, 
     item.add_to_group("interactable")
     item.set_meta("kind", kind)
     item.set_meta("label", label)
+    if kind == "loot":
+        item.set_script(load("res://scripts/loot_animation.gd"))
     add_child(item)
     var instance := MeshInstance3D.new()
     instance.name = "Visual"

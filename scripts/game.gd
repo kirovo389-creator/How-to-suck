@@ -99,6 +99,7 @@ func _process(delta: float) -> void:
         call_shown = true
         call_active = true
         call_response_elapsed = 0.0
+        player.set_mobile_direction(Vector2.ZERO)
         hud.show_call("Хозяева: «На камерах какое-то движение. Мы скоро вернёмся. Ты ещё убираешь?»")
         _play_sound("phone")
     if call_active:
