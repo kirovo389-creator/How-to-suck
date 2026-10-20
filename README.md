@@ -12,3 +12,8 @@ A stylized 3D stealth-cleaning game made with Godot 4.4.1. The initial playable 
 GitHub Actions exports `build/HowToSuck.apk` and uploads it as the `How-to-Suck-Android-APK` artifact. It runs on pushes to main or manually via Actions → Build Android APK → Run workflow.
 
 All initial environment assets are generated from 3D meshes and materials in Godot; no external assets are required.
+
+
+## Android APK
+
+Download the latest Android build from [GitHub Releases](https://github.com/kirovo389-creator/How-to-suck/releases/latest). The APK is debug-signed for testing.

@@ -118,7 +118,7 @@ func _camera():
     camera.name = "FollowCamera"
     camera.position = Vector3(0,10,11)
     camera.rotation_degrees = Vector3(-42,0,0)
-    camera.current = true
     camera.fov = 55
-    add_child(camera)
     camera.set_script(load("res://scripts/follow_camera.gd"))
+    add_child(camera)
+    camera.make_current()

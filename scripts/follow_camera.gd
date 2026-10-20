@@ -3,6 +3,14 @@ extends Camera3D
 var target: Node3D
 func _ready():
     target = get_tree().current_scene.get_node_or_null("Player")
+
+func set_target(target_node: Node3D) -> void:
+    if not is_instance_valid(target_node):
+        return
+    target = target_node
+    global_position = target.global_position + Vector3(0.0, 10.0, 11.0)
+    look_at(target.global_position + Vector3(0.0, 0.5, 0.0), Vector3.UP)
+    make_current()
 func _process(delta):
     if not is_instance_valid(target):
         return
