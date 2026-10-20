@@ -39,9 +39,12 @@ func _run_tests() -> void:
     # Complete an entire shop shift first, not just a resource-count check.
     main.call("_on_action_pressed")
     _check(bool(main.get("shift_started")), "shop shift starts from the intro")
+    var store_opening_text := (hud.get("_cutscene_label") as Label).text
+    _check(store_opening_text.contains("Магазин"), "shop opening cinematic uses the shop story")
     main.call("_skip_cutscene")
     await process_frame
     await _complete_objectives(main)
+    _check((shop_hud.get("_toast_label") as Label).text.contains("Магазин"), "shop cleanup uses shop-specific text")
     world = main.get("world") as Node3D
     exit_target = world.get_node_or_null("ExitInteraction") as Node3D
     _check(bool(exit_target.get_meta("unlocked", false)), "shop exit opens after every objective")
@@ -122,6 +125,7 @@ func _run_tests() -> void:
 
     main.call("_on_action_pressed")
     _check(bool(main.get("shift_started")), "shift starts from the intro")
+    _check((hud.get("_cutscene_label") as Label).text.contains("Хозяева"), "apartment opening cinematic uses the apartment story")
     main.call("_skip_cutscene")
     _check(not bool(main.get("cutscene_playing")), "opening cinematic can be skipped")
     await process_frame
@@ -138,6 +142,7 @@ func _run_tests() -> void:
     _check(int(main.get("dirt_remaining")) == 7, "cleaning is blocked until all valuables are found")
 
     await _complete_objectives(main)
+    _check((hud.get("_toast_label") as Label).text.contains("Квартира"), "apartment cleanup uses apartment-specific text")
     _check(int(main.get("loot_found")) == 5, "all five valuables can be collected")
     _check(int(main.get("dirt_remaining")) == 0, "all seven stains can be cleaned")
 

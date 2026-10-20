@@ -138,7 +138,7 @@ func _process(delta: float) -> void:
         call_response_elapsed = 0.0
         player.set_mobile_direction(Vector2.ZERO)
         player.set_physics_process(false)
-        hud.show_call("Хозяева: «На камерах какое-то движение. Мы скоро вернёмся. Ты ещё убираешь?»")
+        hud.show_call("Управляющий магазина: «Камеры заметили движение. Я скоро вернусь. Ты ещё убираешь?»" if level_id == "store" else "Хозяева: «На камерах какое-то движение. Мы скоро вернёмся. Ты ещё убираешь?»")
         _play_sound("phone")
     if call_active:
         call_response_elapsed += delta
@@ -151,10 +151,10 @@ func _process(delta: float) -> void:
             hud.toast("Звонок пропущен. Хозяева ускорили возвращение.")
             _play_sound("alert")
     if alert_level >= 100.0:
-        _finish(false, "СИГНАЛИЗАЦИЯ", "Тревога достигла максимума. Хозяева уже вызвали охрану.")
+        _finish(false, "СИГНАЛИЗАЦИЯ", "Камеры раскрыли тебя. " + ("Управляющий магазина получил сигнал тревоги." if level_id == "store" else "Хозяева уже вызвали охрану."))
         return
     if time_left <= 0.0:
-        _finish(false, "ВРЕМЯ ВЫШЛО", "Ты не успел закончить смену до возвращения хозяев.")
+        _finish(false, "ВРЕМЯ ВЫШЛО", "Ты не успел закончить смену до возвращения " + ("управляющего магазина." if level_id == "store" else "хозяев."))
         return
     _status_elapsed += delta
     if _status_elapsed >= 0.15:
@@ -261,7 +261,7 @@ func _on_action_pressed() -> void:
         player.set_mobile_direction(Vector2.ZERO)
         player.set_physics_process(false)
         hud.hide_intro()
-        hud.show_cutscene("01:13 — Хозяева уехали. У тебя четыре минуты: забери ценности, убери следы и выйди до их возвращения.")
+        hud.show_cutscene("01:13 — Магазин закрылся. У тебя четыре минуты: найди ценности, убери разливы и выйди до возвращения управляющего." if level_id == "store" else "01:13 — Хозяева уехали. У тебя четыре минуты: забери ценности, убери следы и выйди до их возвращения.")
         var follow_camera: Node = world.get_node_or_null("FollowCamera")
         if is_instance_valid(follow_camera):
             follow_camera.call("play_opening_cutscene")
@@ -293,8 +293,8 @@ func _on_action_pressed() -> void:
         _play_sound("clean")
         if dirt_remaining <= 0:
             world.call("unlock_exit")
-            hud.set_task("Квартира чистая. Доберись до зелёной двери и выйди.")
-            hud.toast("Готово! Выход открыт — доберись до двери.")
+            hud.set_task("Магазин чистый. Доберись до зелёной двери и выйди." if level_id == "store" else "Квартира чистая. Доберись до зелёной двери и выйди.")
+            hud.toast("Магазин убран. Выход открыт — доберись до двери." if level_id == "store" else "Квартира убрана. Выход открыт — доберись до двери.")
         _refresh_status()
     elif kind == "exit":
         if loot_found < loot_total or dirt_remaining > 0:
@@ -303,7 +303,7 @@ func _on_action_pressed() -> void:
             else:
                 hud.toast("Сначала убери ещё %d пятен." % dirt_remaining)
             return
-        _finish(true, "СМЕНА ЗАВЕРШЕНА", "Ты забрал ценности, убрал квартиру и ушёл до возвращения хозяев.")
+        _finish(true, "СМЕНА ЗАВЕРШЕНА", "Ты нашёл ценности, убрал магазин и вышел до возвращения управляющего." if level_id == "store" else "Ты забрал ценности, убрал квартиру и ушёл до возвращения хозяев.")
     _refresh_action_hint()
 
 func _remove_interactable(target: Node3D) -> void:
@@ -422,13 +422,13 @@ func _finish(success: bool, heading: String, message: String) -> void:
         return
     # On failure, let the owner physically return to the apartment before the results panel.
     var owner_actor := OwnerScene.instantiate() as Node3D
-    owner_actor.name = "ReturningOwner"
+    owner_actor.name = "ReturningManager" if level_id == "store" else "ReturningOwner"
     owner_actor.position = Vector3(0.0, 0.0, 9.35)
     add_child(owner_actor)
     owner_actor.call("set_target", player)
     if is_instance_valid(follow_camera):
         follow_camera.call("play_return_cutscene", owner_actor)
-    hud.show_cutscene("Щёлкнул замок… Хозяева вернулись. Ночную смену пора заканчивать.")
+    hud.show_cutscene("Щёлкнул замок… Управляющий магазина вернулся. Ночную смену пора заканчивать." if level_id == "store" else "Щёлкнул замок… Хозяева вернулись. Ночную смену пора заканчивать.")
     _play_sound("lose")
     if is_instance_valid(music):
         music.volume_db = -26.0
