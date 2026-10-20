@@ -375,6 +375,13 @@ func _center_panel(heading: String, body_text: String, button_text: String, call
     _style_button(button, Color(0.1, 0.4, 0.48), Color(0.14, 0.54, 0.61))
     button.pressed.connect(callback)
     column.add_child(button)
+    if show_art:
+        var settings_button := Button.new()
+        settings_button.text = "SETTINGS"
+        settings_button.custom_minimum_size.y = 46.0
+        _style_button(settings_button, Color(0.13, 0.19, 0.25), Color(0.2, 0.31, 0.38))
+        settings_button.pressed.connect(func(): toast("Настройки: музыка управляется системной громкостью устройства."))
+        column.add_child(settings_button)
     _root.add_child(panel)
     if show_art:
         _choose_location(_selected_location)
