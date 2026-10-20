@@ -397,10 +397,10 @@ func _remove_interactable(target: Node3D) -> void:
 func _has_interaction_line_of_sight(target: Node3D) -> bool:
     if not is_instance_valid(player) or not is_instance_valid(target):
         return false
-    var origin := player.global_position + Vector3(0.0, 1.0, 0.0)
+    var origin: Vector3 = player.global_position + Vector3(0.0, 1.0, 0.0)
     var target_kind := str(target.get_meta("kind", ""))
     var target_height := 0.15 if target_kind == "dirt" else 0.28
-    var destination := target.global_position + Vector3(0.0, target_height, 0.0)
+    var destination: Vector3 = target.global_position + Vector3(0.0, target_height, 0.0)
     if origin.distance_squared_to(destination) < 0.01:
         return true
     var query := PhysicsRayQueryParameters3D.create(origin, destination)
