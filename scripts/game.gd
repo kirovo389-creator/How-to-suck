@@ -60,6 +60,7 @@ func _ready() -> void:
     hud = HudScene.instantiate()
     add_child(hud)
     hud.action_pressed.connect(_on_action_pressed)
+    hud.crouch_pressed.connect(_toggle_crouch)
     hud.location_selected.connect(_select_level)
     hud.cutscene_skipped.connect(_skip_cutscene)
     hud.movement_changed.connect(player.set_mobile_direction)
@@ -265,6 +266,15 @@ func _scan_security_cameras() -> void:
         if can_see:
             _camera_visible = true
 
+func _toggle_crouch() -> void:
+    if not shift_started or ended or paused or call_active or cutscene_playing:
+        return
+    var crouching := not bool(player.get("is_crouching"))
+    player.call("set_crouching", crouching)
+    hud.call("set_crouch_state", crouching)
+    hud.toast("Ты присел: двигайся медленнее, камера замечает тебя ниже." if crouching else "Ты встал.")
+    _play_sound("click")
+
 func _on_action_pressed() -> void:
     if ended or paused or call_active or cutscene_playing:
         return
@@ -429,6 +439,8 @@ func _finish(success: bool, heading: String, message: String) -> void:
     cutscene_playing = false
     call_active = false
     player.set_mobile_direction(Vector2.ZERO)
+    player.call("set_crouching", false)
+    hud.call("set_crouch_state", false)
     player.set_physics_process(false)
     hud.hide_cutscene()
     hud.hide_call()

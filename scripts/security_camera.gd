@@ -24,7 +24,8 @@ func can_see(target: Node3D) -> bool:
     if not is_instance_valid(target):
         return false
     var origin := global_position + Vector3(0.0, -0.16, 0.0)
-    var target_pos := target.global_position + Vector3(0.0, 0.82, 0.0)
+    var target_height := 0.42 if bool(target.get("is_crouching")) else 0.82
+    var target_pos := target.global_position + Vector3(0.0, target_height, 0.0)
     var direction := target_pos - origin
     var flat_direction := Vector3(direction.x, 0.0, direction.z)
     if flat_direction.length() > detection_range:

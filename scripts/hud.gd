@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 signal action_pressed
+signal crouch_pressed
 signal location_selected(location_id: String)
 signal movement_changed(direction: Vector2)
 signal call_answered
@@ -174,6 +175,18 @@ func _build_hud() -> void:
     _style_button(_action_button, Color(0.09, 0.39, 0.48), Color(0.13, 0.54, 0.61))
     _action_button.pressed.connect(func(): action_pressed.emit())
     _root.add_child(_action_button)
+    var crouch_button := Button.new()
+    crouch_button.name = "CrouchButton"
+    crouch_button.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+    crouch_button.offset_left = -216.0
+    crouch_button.offset_top = -174.0
+    crouch_button.offset_right = -22.0
+    crouch_button.offset_bottom = -124.0
+    crouch_button.text = "ПРИСЕСТЬ"
+    crouch_button.add_theme_font_size_override("font_size", 16)
+    _style_button(crouch_button, Color(0.17, 0.27, 0.34), Color(0.24, 0.39, 0.46))
+    crouch_button.pressed.connect(func(): crouch_pressed.emit())
+    _root.add_child(crouch_button)
     var pause_button := Button.new()
     pause_button.name = "PauseButton"
     pause_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
@@ -534,6 +547,16 @@ func update_status(loot: int, total: int, dirt: int, seconds: int, alert: float,
 
 func set_action_hint(message: String) -> void:
     _action_button.text = message
+
+func set_crouch_state(enabled: bool) -> void:
+    var button := _root.get_node_or_null("CrouchButton") as Button
+    if not is_instance_valid(button):
+        return
+    button.text = "ВСТАТЬ" if enabled else "ПРИСЕСТЬ"
+    if enabled:
+        _style_button(button, Color(0.48, 0.29, 0.12), Color(0.62, 0.38, 0.15))
+    else:
+        _style_button(button, Color(0.17, 0.27, 0.34), Color(0.24, 0.39, 0.46))
 
 func toast(message: String) -> void:
     _toast_label.text = message

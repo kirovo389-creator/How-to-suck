@@ -158,6 +158,13 @@ func _run_tests() -> void:
     main.call("_resume_game")
     main.call("_skip_cutscene")
     _check(not bool(main.get("cutscene_playing")), "opening cinematic can be skipped")
+    main.call("_toggle_crouch")
+    _check(bool(player.get("is_crouching")), "crouch mode can be enabled")
+    _check(float(player.get("move_speed")) < 4.0, "crouch mode reduces movement speed")
+    _check(is_equal_approx(float(player.scale.y), 0.72), "crouch lowers the character collision profile")
+    main.call("_toggle_crouch")
+    _check(not bool(player.get("is_crouching")), "crouch mode can be disabled")
+    _check(is_equal_approx(float(player.scale.y), 1.0), "standing restores the character scale")
     await process_frame
     var tween_probe := Node3D.new()
     tween_probe.name = "PauseTweenProbe"

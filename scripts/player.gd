@@ -9,8 +9,11 @@ var _torso: Node3D
 var _interaction_elapsed: float = -1.0
 var _interaction_kind: String = ""
 var _rest_arm_rotations: Array[Vector3] = []
+var is_crouching: bool = false
+var _standing_speed: float = 4.0
 
 func _ready() -> void:
+    _standing_speed = move_speed
     _make_character()
     for arm in _arms:
         _rest_arm_rotations.append(arm.rotation)
@@ -24,6 +27,11 @@ func _ready() -> void:
 
 func set_mobile_direction(direction: Vector2) -> void:
     mobile_direction = direction.limit_length(1.0)
+
+func set_crouching(enabled: bool) -> void:
+    is_crouching = enabled
+    move_speed = _standing_speed * 0.58 if enabled else _standing_speed
+    scale.y = 0.72 if enabled else 1.0
 
 func _physics_process(delta: float) -> void:
     var keyboard := Vector2(
