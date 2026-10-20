@@ -44,6 +44,7 @@ var _pending_ending_success: bool = false
 var _pending_ending_heading: String = ""
 var _pending_ending_message: String = ""
 var _pending_ending_seconds: int = 0
+var _returning_owner: Node3D
 var _world_process_mode_before_pause: int = Node.PROCESS_MODE_INHERIT
 
 func _ready() -> void:
@@ -253,6 +254,10 @@ func _finish_ending_cutscene() -> void:
     var follow_camera: Node = world.get_node_or_null("FollowCamera")
     if is_instance_valid(follow_camera):
         follow_camera.call("cancel_cutscene")
+    if is_instance_valid(_returning_owner):
+        _returning_owner.set_physics_process(false)
+        if _returning_owner is CharacterBody3D:
+            (_returning_owner as CharacterBody3D).velocity = Vector3.ZERO
     hud.hide_cutscene()
     hud.show_ending(_pending_ending_success, _pending_ending_heading, _pending_ending_message, _pending_ending_seconds, alert_level)
 
@@ -462,7 +467,8 @@ func _finish(success: bool, heading: String, message: String) -> void:
             music.volume_db = -30.0
         return
     # On failure, let the owner physically return to the apartment before the results panel.
-    var owner_actor := OwnerScene.instantiate() as Node3D
+    _returning_owner = OwnerScene.instantiate() as Node3D
+    var owner_actor := _returning_owner
     owner_actor.name = "ReturningManager" if level_id == "store" else "ReturningOwner"
     owner_actor.position = Vector3(0.0, 0.0, 9.35)
     add_child(owner_actor)

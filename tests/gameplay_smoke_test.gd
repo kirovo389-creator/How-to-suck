@@ -275,10 +275,14 @@ func _run_tests() -> void:
     _check(bool(main.get("ended")), "running out of time ends the shift")
     _check(bool(main.get("_ending_cutscene_active")), "owners return after a failed shift")
     _check(not bool(exit_target.get_meta("unlocked", false)), "failure does not incorrectly open the exit")
+    var returning_owner := main.get("_returning_owner") as Node3D
+    _check(is_instance_valid(returning_owner), "failure creates a tracked returning owner")
     if is_instance_valid(hinge):
         _check(absf(hinge.rotation.y) < 0.01, "failure leaves the exit door closed")
     main.call("_skip_cutscene")
     _check(not bool(main.get("_ending_cutscene_active")), "return cutscene can be skipped")
+    if is_instance_valid(returning_owner):
+        _check(not returning_owner.is_physics_processing(), "returning owner stops moving after the results screen")
 
     main.set("ended", false)
     main.set("time_left", 120.0)
