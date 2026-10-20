@@ -27,6 +27,18 @@ func _run_tests() -> void:
         return
 
     var hud := main.get("hud") as CanvasLayer
+    hud.call("_choose_location", "store")
+    await process_frame
+    world = main.get("world") as Node3D
+    _check(str(world.get("level_id")) == "store", "intro can switch to the shop level")
+    _check(_count_kind("loot") == 5, "shop level has five valuables")
+    _check(_count_kind("dirt") == 7, "shop level has seven spills")
+    hud.call("_choose_location", "apartment")
+    await process_frame
+    world = main.get("world") as Node3D
+    exit_target = world.get_node_or_null("ExitInteraction") as Node3D
+    _check(str(world.get("level_id")) == "apartment", "intro can switch back to the apartment")
+    _check(_count_kind("loot") == 5 and _count_kind("dirt") == 7, "apartment objectives reload cleanly")
     main.set("time_left", 180.0)
     main.set("alert_level", 30.0)
     main.set("call_active", true)
@@ -156,6 +168,13 @@ func _cleanup_and_quit(main_scene: Node, exit_code: int) -> void:
         main_scene.queue_free()
     await process_frame
     call_deferred("quit", exit_code)
+
+func _count_kind(kind: String) -> int:
+    var count := 0
+    for candidate in get_nodes_in_group("interactable"):
+        if is_instance_valid(candidate) and str(candidate.get_meta("kind", "")) == kind:
+            count += 1
+    return count
 
 func _check(condition: bool, label: String) -> void:
     if condition:

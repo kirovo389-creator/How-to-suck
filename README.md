@@ -4,9 +4,9 @@ A stylized 3D game made in Godot 4.4.1 for Android arm64.
 
 ## The night shift
 
-The player is hired to clean an apartment after its owners leave. The job has three stages:
+Choose one of two locations from the start screen: a furnished apartment or a late-night shop. Each site has its own layout, furniture, collectibles, spills and camera positions. The job has three stages:
 
-1. Find all five highlighted valuables scattered around the furnished apartment.
+1. Find all five highlighted valuables scattered around the selected location.
 2. Once the valuables are collected, clean all seven dirt stains.
 3. Reach the front door and leave before the four-minute shift ends.
 
@@ -14,14 +14,15 @@ Security cameras sweep the rooms. Spending too long in a camera's field of view 
 
 ## Controls
 
-- Touch joystick: walk around the apartment.
+- Touch joystick: walk around the selected location.
 - Action button: collect a valuable, clean a stain, or use the exit.
 - Pause: resume or restart the shift.
 - Movement also supports the keyboard arrow keys for desktop testing.
 
 ## Included content
 
-- Furnished 3D apartment with kitchen, living room, bedroom, bathroom, window, props and lighting.
+- Two distinct 3D locations: a furnished apartment and a night shop with shelf aisles, checkout, coolers and a staff desk.
+- The apartment has a kitchen, living room, bedroom, bathroom, window, props and lighting.
 - Animated cleaner character, third-person follow camera and animated security cameras.
 - Touch-first HUD, mission stages, countdown, camera-alert meter, phone-call choice, pause/restart and win/lose panels.
 - Original generated ambient music and sound effects.

@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 signal action_pressed
+signal location_selected(location_id: String)
 signal movement_changed(direction: Vector2)
 signal call_answered
 signal call_declined
@@ -21,6 +22,10 @@ var _move_vec := Vector2.ZERO
 var _touch_index: int = -1
 var _toast_time: float = 0.0
 var _intro_panel: PanelContainer
+var _intro_body: Label
+var _apartment_button: Button
+var _store_button: Button
+var _selected_location: String = "apartment"
 var _call_panel: PanelContainer
 var _call_label: Label
 var _pause_panel: PanelContainer
@@ -42,7 +47,7 @@ func _ready() -> void:
     add_child(_root)
     _build_hud()
     _intro_overlay = _make_overlay("IntroOverlay")
-    _intro_panel = _center_panel("НАЧАЛО СМЕНЫ", "Хозяева уехали. Найди пять ценных вещей, убери семь пятен и выйди до их возвращения. Не задерживайся в поле зрения камер и отвечай на звонки. Управление: джойстик слева, действие справа, пауза сверху.", "НАЧАТЬ СМЕНУ", func(): action_pressed.emit(), true)
+    _intro_panel = _center_panel("НАЧАЛО СМЕНЫ", "Выбери объект, где пройдёт ночная смена. Собери ценности, убери все пятна и выйди до возвращения хозяев. Не задерживайся в поле зрения камер.", "НАЧАТЬ СМЕНУ", func(): action_pressed.emit(), true)
     _call_overlay = _make_overlay("CallOverlay")
     _call_panel = _build_call_panel()
     _pause_overlay = _make_overlay("PauseOverlay")
@@ -259,9 +264,9 @@ func _center_panel(heading: String, body_text: String, button_text: String, call
     var panel := PanelContainer.new()
     panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
     panel.offset_left = -280.0
-    panel.offset_top = -202.0 if show_art else -158.0
+    panel.offset_top = -244.0 if show_art else -158.0
     panel.offset_right = 280.0
-    panel.offset_bottom = 202.0 if show_art else 158.0
+    panel.offset_bottom = 244.0 if show_art else 158.0
     panel.z_index = 10
     _style_panel(panel, Color(0.018, 0.032, 0.052, 0.98), Color(0.17, 0.49, 0.57))
     var column := VBoxContainer.new()
@@ -289,6 +294,31 @@ func _center_panel(heading: String, body_text: String, button_text: String, call
     body.add_theme_font_size_override("font_size", 17)
     body.add_theme_color_override("font_color", Color(0.85, 0.89, 0.92))
     column.add_child(body)
+    if show_art:
+        _intro_body = body
+        var location_header := Label.new()
+        location_header.text = "ВЫБЕРИ ОБЪЕКТ"
+        location_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+        location_header.add_theme_font_size_override("font_size", 13)
+        location_header.add_theme_color_override("font_color", Color(0.55, 0.72, 0.77))
+        column.add_child(location_header)
+        var location_row := HBoxContainer.new()
+        location_row.add_theme_constant_override("separation", 12)
+        column.add_child(location_row)
+        _apartment_button = Button.new()
+        _apartment_button.text = "КВАРТИРА"
+        _apartment_button.custom_minimum_size.y = 48.0
+        _apartment_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+        _style_button(_apartment_button, Color(0.1, 0.4, 0.48), Color(0.14, 0.54, 0.61))
+        _apartment_button.pressed.connect(func(): _choose_location("apartment"))
+        location_row.add_child(_apartment_button)
+        _store_button = Button.new()
+        _store_button.text = "МАГАЗИН"
+        _store_button.custom_minimum_size.y = 48.0
+        _store_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+        _style_button(_store_button, Color(0.08, 0.13, 0.18), Color(0.15, 0.25, 0.31))
+        _store_button.pressed.connect(func(): _choose_location("store"))
+        location_row.add_child(_store_button)
     var button := Button.new()
     button.text = button_text
     button.custom_minimum_size.y = 52.0
@@ -297,7 +327,33 @@ func _center_panel(heading: String, body_text: String, button_text: String, call
     button.pressed.connect(callback)
     column.add_child(button)
     _root.add_child(panel)
+    if show_art:
+        _choose_location(_selected_location)
     return panel
+
+func _choose_location(location_id: String) -> void:
+    if location_id != "apartment" and location_id != "store":
+        return
+    _selected_location = location_id
+    if is_instance_valid(_intro_body):
+        if location_id == "apartment":
+            _intro_body.text = "КВАРТИРА • Осмотри кухню, гостиную, спальню и ванную. Пять ценностей, семь пятен и один выход."
+        else:
+            _intro_body.text = "МАГАЗИН • Исследуй торговые ряды и кассу. Пять ценностей, семь разливов и камеры под потолком."
+    _refresh_location_buttons()
+    location_selected.emit(location_id)
+
+func _refresh_location_buttons() -> void:
+    if is_instance_valid(_apartment_button):
+        if _selected_location == "apartment":
+            _style_button(_apartment_button, Color(0.1, 0.4, 0.48), Color(0.14, 0.54, 0.61))
+        else:
+            _style_button(_apartment_button, Color(0.055, 0.09, 0.12), Color(0.13, 0.21, 0.25))
+    if is_instance_valid(_store_button):
+        if _selected_location == "store":
+            _style_button(_store_button, Color(0.1, 0.4, 0.48), Color(0.14, 0.54, 0.61))
+        else:
+            _style_button(_store_button, Color(0.055, 0.09, 0.12), Color(0.13, 0.21, 0.25))
 
 func _build_call_panel() -> PanelContainer:
     var panel := PanelContainer.new()

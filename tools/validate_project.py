@@ -57,6 +57,13 @@ require('func _finish_cutscene()' in game and 'func _finish(success: bool' in ga
         "Opening and ending cinematics plus end-state logic exist")
 require('func unlock_exit()' in world and 'set_meta("kind", "exit")' in world,
         "Exit is gated behind the mission objective")
+require('func _build_store_room()' in world and 'func _build_store_furniture()' in world and
+        'level_id == "store"' in world,
+        "Apartment and shop 3D layouts are available")
+require('signal location_selected(location_id: String)' in hud and
+        'func _choose_location(location_id: String)' in hud and
+        'func _select_level(selected_level: String)' in game,
+        "Start screen can change locations before the shift begins")
 require('signal call_answered' in hud and 'signal cutscene_skipped' in hud and
         'signal restart_pressed' in hud,
         "Call choices, cutscene skip and replay signals are declared")
@@ -65,6 +72,7 @@ resource_sources = [ROOT / "project.godot"]
 for folder in ("scripts", "scenes"):
     resource_sources.extend((ROOT / folder).rglob("*.gd"))
     resource_sources.extend((ROOT / folder).rglob("*.tscn"))
+resource_sources.extend((ROOT / "tests").rglob("*.gd"))
 resource_sources.extend([ROOT / "export_presets.cfg"])
 references: set[str] = set()
 for source in resource_sources:
