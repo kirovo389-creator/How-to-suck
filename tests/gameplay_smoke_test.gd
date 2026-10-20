@@ -37,6 +37,7 @@ func _run_tests() -> void:
     _check(_count_kind("loot") == 5, "shop level has five valuables")
     _check(_count_kind("dirt") == 7, "shop level has seven spills")
     # Complete an entire shop shift first, not just a resource-count check.
+    var shop_hud := main.get("hud") as CanvasLayer
     main.call("_on_action_pressed")
     _check(bool(main.get("shift_started")), "shop shift starts from the intro")
     var store_opening_text := (hud.get("_cutscene_label") as Label).text
@@ -56,7 +57,6 @@ func _run_tests() -> void:
     _check(bool(main.get("_ending_cutscene_active")), "shop escape starts its ending cinematic")
     main.call("_skip_cutscene")
     await process_frame
-    var shop_hud := main.get("hud") as CanvasLayer
     var shop_ending_overlay := shop_hud.get("_ending_overlay") as Control
     _check(is_instance_valid(shop_ending_overlay) and shop_ending_overlay.visible, "shop results panel appears")
 
