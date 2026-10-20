@@ -42,7 +42,7 @@ func _ready() -> void:
     add_child(_root)
     _build_hud()
     _intro_overlay = _make_overlay("IntroOverlay")
-    _intro_panel = _center_panel("НАЧАЛО СМЕНЫ", "Хозяева уехали. Найди пять ценных вещей, после этого убери семь пятен и успей выйти до возвращения хозяев. Не попадайся камерам и отвечай на звонки.", "НАЧАТЬ СМЕНУ", func(): action_pressed.emit(), true)
+    _intro_panel = _center_panel("НАЧАЛО СМЕНЫ", "Хозяева уехали. Найди пять ценных вещей, убери семь пятен и выйди до их возвращения. Не задерживайся в поле зрения камер и отвечай на звонки. Управление: джойстик слева, действие справа, пауза сверху.", "НАЧАТЬ СМЕНУ", func(): action_pressed.emit(), true)
     _call_overlay = _make_overlay("CallOverlay")
     _call_panel = _build_call_panel()
     _pause_overlay = _make_overlay("PauseOverlay")

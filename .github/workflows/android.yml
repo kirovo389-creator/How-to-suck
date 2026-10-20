@@ -38,7 +38,7 @@ jobs:
         run: |
           set -o pipefail
           godot --headless --audio-driver Dummy --path . --quit-after 120 2>&1 | tee game-smoke-test.log
-          if grep -E "SCRIPT ERROR|Parse Error|Invalid call|Attempt to call function .* on a null instance" game-smoke-test.log; then
+          if grep -E "SCRIPT ERROR|Parse Error|Invalid call|Invalid access to property|Attempt to call function .* on a null instance|Failed loading resource|Could not open file" game-smoke-test.log; then
             echo "Godot reported a runtime or script error."
             exit 1
           fi
