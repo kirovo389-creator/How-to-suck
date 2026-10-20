@@ -623,7 +623,6 @@ func _play_dev_studio_splash() -> void:
 
     var tween := create_tween()
     tween.tween_property(title, "modulate", Color(0.02, 0.03, 0.05, 1.0), 0.5)
-    await get_tree().create_timer(1.5).timeout
-    if not is_instance_valid(layer):
-        return
-    layer.queue_free()
+    tween.tween_interval(1.2)
+    tween.tween_property(title, "modulate", Color(0.02, 0.03, 0.05, 0.0), 0.4)
+    tween.tween_callback(layer.queue_free)
