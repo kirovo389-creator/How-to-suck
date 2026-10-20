@@ -58,6 +58,19 @@ func _run_tests() -> void:
     _check(_count_kind("dirt") == 7, "shop level has seven spills")
     # Complete an entire shop shift first, not just a resource-count check.
     var shop_hud := main.get("hud") as CanvasLayer
+    main.set("call_active", true)
+    main.set("alert_level", 30.0)
+    main.call("_answer_call")
+    _check((shop_hud.get("_toast_label") as Label).text.contains("управляющего"),
+        "shop phone answer names the manager")
+    main.set("time_left", 240.0)
+    main.set("alert_level", 0.0)
+    main.set("call_active", true)
+    main.call("_decline_call")
+    _check((shop_hud.get("_toast_label") as Label).text.contains("Управляющий"),
+        "missed shop call names the manager")
+    main.set("alert_level", 0.0)
+    main.set("time_left", 240.0)
     main.call("_on_action_pressed")
     _check(bool(main.get("shift_started")), "shop shift starts from the intro")
     var store_opening_text := (hud.get("_cutscene_label") as Label).text
