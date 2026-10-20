@@ -23,7 +23,7 @@ Security cameras sweep the rooms. Spending too long in a camera's field of view 
 
 - Two distinct 3D locations: a furnished apartment and a night shop with shelf aisles, checkout, coolers and a staff desk.
 - The apartment has a kitchen, living room, bedroom, bathroom, window, props and lighting.
-- Animated cleaner character, third-person follow camera and animated security cameras.
+- Animated cleaner character with pickup/cleaning actions, third-person follow camera, sweeping security cameras and visible floor detection zones that turn red when spotted.
 - Touch-first HUD, mission stages, countdown, camera-alert meter, phone-call choice, pause/restart and win/lose panels.
 - Original apartment ambience, a separate night-market ambience, and gameplay sound effects.
 - Cool fluorescent lighting in the shop aisles and a warmer pool of light at the checkout.

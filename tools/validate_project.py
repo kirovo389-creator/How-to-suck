@@ -67,6 +67,12 @@ require('loot_total: int = 5' in game and 'dirt_remaining: int = 7' in game,
         "Mission objective counts are defined")
 require('func _scan_security_cameras()' in game and 'alert_level >= 100.0' in game,
         "Security camera detection and alert-loss state exist")
+player = text("scripts/player.gd")
+require('func play_interaction(kind: String)' in player and
+        'func _update_interaction_animation(delta: float)' in player and
+        'player.call("play_interaction", "loot")' in game and
+        'player.call("play_interaction", "dirt")' in game,
+        "Pickup and cleaning use timed character interaction animations")
 camera = text("scripts/security_camera.gd")
 require('func _build_vision_cone()' in camera and 'VisionCone' in camera and
         'BaseMaterial3D.TRANSPARENCY_ALPHA' in camera and

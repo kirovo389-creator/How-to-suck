@@ -6,9 +6,14 @@ var _animation_time: float = 0.0
 var _legs: Array[Node3D] = []
 var _arms: Array[Node3D] = []
 var _torso: Node3D
+var _interaction_elapsed: float = -1.0
+var _interaction_kind: String = ""
+var _rest_arm_rotations: Array[Vector3] = []
 
 func _ready() -> void:
     _make_character()
+    for arm in _arms:
+        _rest_arm_rotations.append(arm.rotation)
     var collider := CollisionShape3D.new()
     var capsule := CapsuleShape3D.new()
     capsule.radius = 0.29
@@ -43,6 +48,39 @@ func _physics_process(delta: float) -> void:
         _arms[index].rotation.z = (-0.08 if index == 0 else 0.08) + (swing * 0.3)
     if is_instance_valid(_torso):
         _torso.position.y = 1.02 + (absf(sin(_animation_time * 2.0)) * 0.025 if moving else 0.0)
+    _update_interaction_animation(delta)
+
+func play_interaction(kind: String) -> void:
+    if kind != "loot" and kind != "dirt":
+        return
+    _interaction_kind = kind
+    _interaction_elapsed = 0.0
+
+func is_interacting() -> bool:
+    return _interaction_elapsed >= 0.0
+
+func _update_interaction_animation(delta: float) -> void:
+    if _interaction_elapsed < 0.0:
+        return
+    _interaction_elapsed += delta
+    var progress := clampf(_interaction_elapsed / 0.62, 0.0, 1.0)
+    var weight := sin(progress * PI)
+    var bend := 0.25 if _interaction_kind == "loot" else 0.42
+    if is_instance_valid(_torso):
+        _torso.rotation.x = bend * weight
+    if not _arms.is_empty():
+        var reach := -0.62 if _interaction_kind == "loot" else -1.0
+        _arms[0].rotation.x = _rest_arm_rotations[0].x + reach * weight
+        _arms[0].rotation.z = _rest_arm_rotations[0].z - 0.08 * weight
+    if _arms.size() > 1:
+        _arms[1].rotation.x = _rest_arm_rotations[1].x - 0.18 * weight
+    if progress >= 1.0:
+        _interaction_elapsed = -1.0
+        _interaction_kind = ""
+        if is_instance_valid(_torso):
+            _torso.rotation = Vector3.ZERO
+        for index in range(_arms.size()):
+            _arms[index].rotation = _rest_arm_rotations[index]
 
 func _make_character() -> void:
     var uniform := Color(0.055, 0.27, 0.31)

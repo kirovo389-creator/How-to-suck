@@ -62,6 +62,12 @@ func _run_tests() -> void:
     _check(store_opening_text.contains("Магазин"), "shop opening cinematic uses the shop story")
     main.call("_skip_cutscene")
     await process_frame
+    var shop_player_for_animation := main.get("player") as Node3D
+    _check(shop_player_for_animation.has_method("play_interaction"), "player has dedicated pickup and cleaning animations")
+    shop_player_for_animation.call("play_interaction", "dirt")
+    _check(bool(shop_player_for_animation.call("is_interacting")), "cleaning animation starts on interaction")
+    await create_timer(0.72).timeout
+    _check(not bool(shop_player_for_animation.call("is_interacting")), "interaction animation returns to the idle pose")
     await _complete_objectives(main)
     _check((shop_hud.get("_toast_label") as Label).text.contains("Магазин"), "shop cleanup uses shop-specific text")
     world = main.get("world") as Node3D

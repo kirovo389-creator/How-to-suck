@@ -285,6 +285,7 @@ func _on_action_pressed() -> void:
         return
     var kind: String = str(target.get_meta("kind", ""))
     if kind == "loot":
+        player.call("play_interaction", "loot")
         var label := str(target.get_meta("label", "Ценность"))
         _remove_interactable(target)
         loot_found += 1
@@ -298,6 +299,7 @@ func _on_action_pressed() -> void:
             hud.toast("Сначала найди все 5 ценностей. Уборка — последний этап.")
             _play_sound("click")
             return
+        player.call("play_interaction", "dirt")
         _remove_interactable(target)
         dirt_remaining -= 1
         hud.toast("Пятно убрано. Осталось: %d" % dirt_remaining)
