@@ -48,7 +48,7 @@ func _ready() -> void:
     add_child(_root)
     _build_hud()
     _intro_overlay = _make_overlay("IntroOverlay")
-    _intro_panel = _center_panel("НАЧАЛО СМЕНЫ", "Выбери объект, где пройдёт ночная смена. Собери ценности, убери все пятна и выйди до возвращения хозяев. Не задерживайся в поле зрения камер.", "НАЧАТЬ СМЕНУ", func(): action_pressed.emit(), true)
+    _intro_panel = _center_panel("НАЧАЛО СМЕНЫ", "Выбери объект, где пройдёт ночная смена. Собери ценности, убери все пятна и выйди до возвращения хозяев. Не задерживайся в поле зрения камер: присядь, чтобы снизить риск обнаружения.", "НАЧАТЬ СМЕНУ", func(): action_pressed.emit(), true)
     _call_overlay = _make_overlay("CallOverlay")
     _call_panel = _build_call_panel()
     _pause_overlay = _make_overlay("PauseOverlay")
@@ -350,9 +350,9 @@ func _choose_location(location_id: String) -> void:
     _selected_location = location_id
     if is_instance_valid(_intro_body):
         if location_id == "apartment":
-            _intro_body.text = "КВАРТИРА • Осмотри кухню, гостиную, спальню и ванную. Пять ценностей, семь пятен и один выход."
+            _intro_body.text = "КВАРТИРА • Осмотри кухню, гостиную, спальню и ванную. Пять ценностей, семь пятен и один выход. Присядь, чтобы камеры замечали тебя хуже."
         else:
-            _intro_body.text = "МАГАЗИН • Исследуй торговые ряды и кассу. Пять ценностей, семь разливов и камеры под потолком."
+            _intro_body.text = "МАГАЗИН • Исследуй торговые ряды и кассу. Пять ценностей, семь разливов и камеры под потолком. Присядь, чтобы снизить риск обнаружения."
     _refresh_location_buttons()
     location_selected.emit(location_id)
 
