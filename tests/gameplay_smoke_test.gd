@@ -36,11 +36,14 @@ func _run_tests() -> void:
     main.call("_decline_call")
     _check(not bool(main.get("call_active")), "declining the phone closes the call")
     _check(int(main.get("alert_level")) == 30, "declining the phone raises suspicion")
+    # Test movement in an open hallway, not next to the coffee-table collider.
+    player.global_position = Vector3(-7.0, 0.0, 0.0)
     var player_start := player.global_position
     player.set_mobile_direction(Vector2.RIGHT)
     await physics_frame
+    await physics_frame
     player.set_mobile_direction(Vector2.ZERO)
-    _check(player.global_position.x > player_start.x, "virtual joystick moves the player")
+    _check(player.global_position.x > player_start.x + 0.01, "virtual joystick moves the player")
 
     # Return the game to a clean initial state after isolated phone-choice checks.
     main.set("alert_level", 0.0)
@@ -93,12 +96,16 @@ func _run_tests() -> void:
     main.call("_on_action_pressed")
     _check(bool(main.get("ended")), "using the exit finishes the shift")
 
+    var exit_code := 0
     if failures == 0:
         print("PASS: full gameplay loop completed in headless test.")
-        quit(0)
     else:
         push_error("%d gameplay smoke test(s) failed." % failures)
-        quit(1)
+        exit_code = 1
+    current_scene = null
+    main.queue_free()
+    await process_frame
+    quit(exit_code)
 
 func _check(condition: bool, label: String) -> void:
     if condition:
