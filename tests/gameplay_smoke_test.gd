@@ -150,6 +150,12 @@ func _run_tests() -> void:
     main.call("_on_action_pressed")
     _check(bool(main.get("shift_started")), "shift starts from the intro")
     _check((hud.get("_cutscene_label") as Label).text.contains("Хозяева"), "apartment opening cinematic uses the apartment story")
+    var cinematic_time_before_pause: float = float(main.get("cutscene_elapsed"))
+    main.call("_toggle_pause")
+    await create_timer(0.24).timeout
+    _check(is_equal_approx(float(main.get("cutscene_elapsed")), cinematic_time_before_pause),
+        "pause freezes the opening cinematic")
+    main.call("_resume_game")
     main.call("_skip_cutscene")
     _check(not bool(main.get("cutscene_playing")), "opening cinematic can be skipped")
     await process_frame

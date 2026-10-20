@@ -115,6 +115,8 @@ func _music_for_level() -> AudioStream:
     return STORE_MUSIC_STREAM if level_id == "store" else MUSIC_STREAM
 
 func _process(delta: float) -> void:
+    if paused:
+        return
     if cutscene_playing:
         cutscene_elapsed += delta
         if cutscene_elapsed >= 4.6:
@@ -125,7 +127,7 @@ func _process(delta: float) -> void:
         if _ending_cutscene_elapsed >= 3.8:
             _finish_ending_cutscene()
         return
-    if not shift_started or ended or paused:
+    if not shift_started or ended:
         return
     time_left -= delta
     call_elapsed += delta
