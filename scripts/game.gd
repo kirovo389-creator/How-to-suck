@@ -162,7 +162,7 @@ func _process(delta: float) -> void:
             call_active = false
             hud.hide_call()
             player.set_mobile_direction(Vector2.ZERO)
-            player.set_physics_process(true)
+            _sync_player_processing()
             alert_level = minf(100.0, alert_level + 22.0)
             hud.toast("Звонок пропущен. " + ("Управляющий ускорил возвращение." if level_id == "store" else "Хозяева ускорили возвращение."))
             _play_sound("alert")
@@ -234,7 +234,7 @@ func _finish_cutscene() -> void:
     cutscene_playing = false
     cutscene_elapsed = 0.0
     player.set_mobile_direction(Vector2.ZERO)
-    player.set_physics_process(true)
+    _sync_player_processing()
     hud.hide_cutscene()
     hud.toast("Сначала собери 5 ценностей. Затем убери 7 пятен и выйди через дверь.")
     _refresh_status()
@@ -384,7 +384,7 @@ func _answer_call() -> void:
     call_active = false
     hud.hide_call()
     player.set_mobile_direction(Vector2.ZERO)
-    player.set_physics_process(true)
+    _sync_player_processing()
     alert_level = maxf(0.0, alert_level - 24.0)
     time_left = minf(240.0, time_left + 8.0)
     hud.toast(("Ты успокоил управляющего." if level_id == "store" else "Ты успокоил хозяев.") + " Тревога снизилась, но время продолжает идти.")
@@ -397,7 +397,7 @@ func _decline_call() -> void:
     call_active = false
     hud.hide_call()
     player.set_mobile_direction(Vector2.ZERO)
-    player.set_physics_process(true)
+    _sync_player_processing()
     alert_level = minf(100.0, alert_level + 18.0)
     hud.toast("Ты сбросил звонок. Подозрения выросли.")
     _play_sound("alert")
@@ -431,7 +431,13 @@ func _resume_game() -> void:
         sfx.stream_paused = false
     hud.show_pause(false)
     player.set_mobile_direction(Vector2.ZERO)
-    player.set_physics_process(true)
+    _sync_player_processing()
+
+func _sync_player_processing() -> void:
+    if not is_instance_valid(player):
+        return
+    var controls_allowed: bool = shift_started and not paused and not call_active and not cutscene_playing and not ended and not _ending_cutscene_active
+    player.set_physics_process(controls_allowed)
 
 func _restart_game() -> void:
     get_tree().reload_current_scene()
