@@ -10,6 +10,7 @@ func _run_tests() -> void:
     var main: Node = MainScene.instantiate()
     root.add_child(main)
     current_scene = main
+    await main.startup_completed
     var startup_player := main.get("player") as Node3D
     var startup_world := main.get("world") as Node3D
     var startup_camera: Camera3D
@@ -173,6 +174,7 @@ func _run_tests() -> void:
     main = MainScene.instantiate()
     root.add_child(main)
     current_scene = main
+    await main.startup_completed
     await process_frame
     player = main.get("player") as Node3D
     world = main.get("world") as Node3D
