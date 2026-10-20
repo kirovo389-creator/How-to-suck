@@ -1,5 +1,7 @@
 extends Node3D
 
+signal startup_completed
+
 const PlayerScene = preload("res://scenes/player.tscn")
 const HudScene = preload("res://scenes/hud.tscn")
 const OwnerScene = preload("res://scenes/owner.tscn")
@@ -100,6 +102,7 @@ func _ready() -> void:
     hud.show_intro()
     _refresh_status()
     _finish_startup_splash()
+    startup_completed.emit()
 
 func _exit_tree() -> void:
     _stop_audio()
@@ -126,6 +129,11 @@ func _select_level(selected_level: String) -> void:
     world.name = "Store" if level_id == "store" else "Apartment"
     world.set("level_id", level_id)
     add_child(world)
+    await world.build_completed
+    var new_camera := world.get_node_or_null("FollowCamera") as Camera3D
+    if is_instance_valid(new_camera) and is_instance_valid(player):
+        new_camera.call("set_target", player)
+        new_camera.make_current()
     if is_instance_valid(music):
         music.stream = _music_for_level()
         music.play()
