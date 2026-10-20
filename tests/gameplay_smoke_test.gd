@@ -27,6 +27,8 @@ func _run_tests() -> void:
         return
 
     var hud := main.get("hud") as CanvasLayer
+    var hud_root := hud.get("_root") as Control
+    _check(hud_root.get_node_or_null("CrouchButton") is Button, "mobile HUD exposes the crouch control")
     hud.call("_choose_location", "store")
     await process_frame
     world = main.get("world") as Node3D
