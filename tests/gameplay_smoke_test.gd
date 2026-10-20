@@ -143,6 +143,9 @@ func _run_tests() -> void:
     main.call("_decline_call")
     _check(not bool(main.get("call_active")), "declining the phone closes the call")
     _check(int(main.get("alert_level")) == 30, "declining the phone raises suspicion")
+    # Movement is allowed only after the shift has started.
+    main.set("shift_started", true)
+    main.call("_sync_player_processing")
     # Test movement in an open hallway, not next to the coffee-table collider.
     player.global_position = Vector3(-7.0, 0.0, 0.0)
     var player_start := player.global_position
@@ -151,6 +154,8 @@ func _run_tests() -> void:
     await physics_frame
     player.set_mobile_direction(Vector2.ZERO)
     _check(player.global_position.x > player_start.x + 0.01, "virtual joystick moves the player")
+    main.set("shift_started", false)
+    main.call("_sync_player_processing")
 
     # Return the game to a clean initial state after isolated phone-choice checks.
     main.set("alert_level", 0.0)
