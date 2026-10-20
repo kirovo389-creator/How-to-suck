@@ -1,14 +1,47 @@
-# How to Suck — 3D Android game
+# How to Suck — 3D Android stealth game
 
-A stylized 3D stealth-cleaning game made with Godot 4.4.1. The initial playable build has a furnished apartment, third-person character, touch joystick, interaction button, collectible valuables, dirt spots, countdown, and a phone call from the owners.
+A stylized 3D game made in Godot 4.4.1 for Android arm64.
 
-## Gameplay
-1. Start the night shift.
-2. Explore and collect five highlighted valuables.
-3. Clean seven dirt spots using the interaction button.
-4. Answer the owners' call and finish before time runs out.
+## The night shift
 
-## Build
-GitHub Actions exports `build/HowToSuck.apk` and uploads it as the `How-to-Suck-Android-APK` artifact. It runs on pushes to main or manually via Actions → Build Android APK → Run workflow.
+Choose one of two locations from the start screen: a furnished apartment or a late-night shop. Each site has its own layout, furniture, collectibles, spills and camera positions. The job has three stages:
 
-All initial environment assets are generated from 3D meshes and materials in Godot; no external assets are required.
+1. Find all five highlighted valuables scattered around the selected location.
+2. Once the valuables are collected, clean all seven dirt stains.
+3. Reach the front door and leave before the four-minute shift ends.
+
+Security cameras sweep the rooms and project a visible field of view onto the floor. The projection turns red when a camera sees you. Crouch to move more slowly and lower your detection point. Sprint to cross exposed rooms faster, but it drains stamina and makes camera alerts rise faster. Wait for stamina to recover, use walls and furniture, and time your route to stay out of sight. The owners call after movement is detected or enough time has passed. Answering lowers suspicion and adds a small time bonus, while ignoring or declining the call raises suspicion. Maximum alert or an expired timer ends the shift.
+
+## Controls
+
+- Touch joystick: walk around the selected location.
+- Action button: collect a valuable, clean a stain, or use the exit; solid walls and furniture block interactions.
+- Crouch button: move more slowly and reduce your visible height; tap again to stand.
+- Sprint button: toggle faster movement; stamina drains while moving and recovers when you stop sprinting.
+- Pause: freeze the world and audio, then resume or restart the shift.
+- Movement also supports the keyboard arrow keys for desktop testing.
+
+## Included content
+
+- Two distinct 3D locations: a furnished apartment and a night shop with shelf aisles, checkout, coolers and a staff desk.
+- The apartment has a kitchen, living room, bedroom, bathroom, window, props and lighting.
+- Animated cleaner character with pickup/cleaning actions, crouch stealth and sprint stamina; third-person follow camera, sweeping security cameras and visible floor detection zones that turn red when spotted.
+- Touch-first HUD, mission stages, countdown, camera-alert meter, phone-call choice, pause/restart and win/lose panels.
+- Original apartment ambience, a separate night-market ambience, and gameplay sound effects.
+- Cool fluorescent lighting in the shop aisles and a warmer pool of light at the checkout.
+- Android landscape export preset and a headless smoke-test step before APK export.
+
+## Android APK
+
+GitHub Actions can create build/HowToSuck.apk and upload it as the How-to-Suck-Android-APK artifact. Before export, the workflow imports the game and runs headless gameplay/runtime tests; after export, it verifies the APK archive and ARM64 Godot library. The APK workflow is configured for pushes to main or an explicit manual dispatch. The separate game-completion branch uses validation-only CI and does not trigger an APK export.
+
+All 3D objects are original meshes built by the project; no third-party art assets are required.
+
+## Automated checks
+
+The `game-completion` branch runs a separate validation workflow which does **not** export an APK. It checks referenced assets, imports the project in Godot, runs a short runtime smoke test, and exercises the complete mission loop (including phone choices and replay-related state). The Android APK workflow remains separate and is intentionally run only after the game has passed its readiness checks.
+
+
+## Android APK
+
+Download the latest Android build from [GitHub Releases](https://github.com/kirovo389-creator/How-to-suck/releases/latest). The APK is debug-signed for testing.

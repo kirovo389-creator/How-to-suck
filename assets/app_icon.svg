@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#09182c"/><stop offset="1" stop-color="#1c3a47"/></linearGradient>
+    <linearGradient id="m" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8ee0e5"/><stop offset="1" stop-color="#328a9a"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="105" fill="url(#b)"/>
+  <circle cx="381" cy="112" r="48" fill="#edc875"/><circle cx="401" cy="94" r="48" fill="#0d2436"/>
+  <path d="M65 380 L226 264 L447 391 L447 448 L65 448 Z" fill="#543e31"/>
+  <path d="M80 392 L235 291 L418 397" fill="none" stroke="#9a7150" stroke-width="9" opacity=".62"/>
+  <path d="M98 264 L98 118 L253 118 L253 264 Z" fill="#17394a" stroke="#76a4ad" stroke-width="12"/>
+  <path d="M175 124 V258 M105 191 H247" stroke="#81b9c4" stroke-width="8"/>
+  <g transform="translate(264 152)">
+    <ellipse cx="70" cy="249" rx="73" ry="16" fill="#050d19" opacity=".55"/>
+    <path d="M42 125 L31 207 L57 207 L73 154 L88 207 L114 207 L101 123 Z" fill="#0d1928"/>
+    <path d="M38 67 Q26 79 37 141 L107 141 Q120 83 104 67 Z" fill="url(#m)"/>
+    <path d="M40 78 L11 133 L29 147 L65 100 Z" fill="#328b98"/>
+    <path d="M102 78 L126 126 L110 141 L80 103 Z" fill="#328b98"/>
+    <circle cx="72" cy="36" r="33" fill="#c48f68"/>
+    <path d="M39 35 Q35 -5 73 1 Q109 0 105 35 L92 21 L46 22 Z" fill="#15141d"/>
+    <path d="M108 124 L145 219" stroke="#c6a36a" stroke-width="9" stroke-linecap="round"/>
+    <path d="M127 216 L164 216 L170 232 L120 232 Z" fill="#5ec1c8"/>
+  </g>
+  <g transform="translate(321 97)">
+    <rect x="0" y="0" width="74" height="30" rx="8" fill="#152b3b"/>
+    <circle cx="37" cy="15" r="9" fill="#f35b50"/>
+    <path d="M37 30 L5 98 M37 30 V105 M37 30 L70 98" stroke="#f35b50" stroke-width="3" opacity=".26"/>
+  </g>
+  <text x="256" y="481" fill="#eef3ee" font-family="sans-serif" font-size="40" font-weight="900" letter-spacing="3" text-anchor="middle">HTS</text>
+</svg>

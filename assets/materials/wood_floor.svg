@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="grain" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#68442f"/><stop offset=".22" stop-color="#8d6243"/><stop offset=".55" stop-color="#765039"/><stop offset="1" stop-color="#553b2b"/></linearGradient>
+    <linearGradient id="plank2" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#765139"/><stop offset=".45" stop-color="#9b714c"/><stop offset="1" stop-color="#64452f"/></linearGradient>
+    <linearGradient id="plank3" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#553a2a"/><stop offset=".5" stop-color="#79543b"/><stop offset="1" stop-color="#5e402d"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="#38281f"/>
+  <g stroke="#33231b" stroke-width="5">
+    <rect x="2" y="2" width="176" height="123" fill="url(#grain)"/>
+    <rect x="182" y="2" width="201" height="123" fill="url(#plank2)"/>
+    <rect x="387" y="2" width="123" height="123" fill="url(#plank3)"/>
+    <rect x="2" y="130" width="80" height="123" fill="url(#plank2)"/>
+    <rect x="86" y="130" width="212" height="123" fill="url(#plank3)"/>
+    <rect x="302" y="130" width="208" height="123" fill="url(#grain)"/>
+    <rect x="2" y="258" width="220" height="123" fill="url(#plank3)"/>
+    <rect x="226" y="258" width="126" height="123" fill="url(#grain)"/>
+    <rect x="356" y="258" width="154" height="123" fill="url(#plank2)"/>
+    <rect x="2" y="386" width="103" height="124" fill="url(#grain)"/>
+    <rect x="109" y="386" width="184" height="124" fill="url(#plank2)"/>
+    <rect x="297" y="386" width="213" height="124" fill="url(#plank3)"/>
+  </g>
+  <g fill="none" stroke="#c08b5b" stroke-width="2" opacity=".24">
+    <path d="M8 28 C52 15 105 39 170 25 M12 41 C63 30 116 50 170 39 M195 23 C240 34 323 9 374 27 M199 48 C251 36 320 60 377 44 M397 31 C435 15 471 44 503 31"/>
+    <path d="M10 161 C38 145 59 169 78 159 M99 152 C159 170 224 139 291 155 M311 185 C372 167 445 190 504 173"/>
+    <path d="M12 282 C78 268 148 300 217 281 M237 303 C271 286 315 321 349 298 M368 279 C420 299 464 270 504 287"/>
+    <path d="M10 421 C36 408 66 431 100 419 M121 447 C178 430 228 456 289 438 M308 416 C382 432 438 406 504 425"/>
+  </g>
+  <g fill="#2e2119" opacity=".35">
+    <ellipse cx="72" cy="86" rx="13" ry="3"/><ellipse cx="272" cy="82" rx="19" ry="3"/><ellipse cx="448" cy="93" rx="13" ry="3"/>
+    <ellipse cx="184" cy="221" rx="16" ry="3"/><ellipse cx="416" cy="234" rx="21" ry="3"/><ellipse cx="89" cy="344" rx="16" ry="3"/>
+    <ellipse cx="274" cy="354" rx="10" ry="3"/><ellipse cx="420" cy="463" rx="18" ry="3"/>
+  </g>
+</svg>

@@ -1,0 +1,67 @@
+name: Validate Godot Game (no APK build)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [game-completion]
+  pull_request:
+    branches: [main]
+    paths:
+      - "project.godot"
+      - "scripts/**"
+      - "scenes/**"
+      - "assets/**"
+      - "audio/**"
+      - "tests/**"
+      - "tools/**"
+      - ".github/workflows/validate-game.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate files, paths and audio assets
+        run: python3 tools/validate_project.py
+      - name: Download Godot 4.4.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --retry-delay 2 \
+            https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip \
+            --output godot.zip
+          unzip -q godot.zip -d godot-bin
+          chmod +x godot-bin/Godot_v4.4.1-stable_linux.x86_64
+          sudo install -m 0755 godot-bin/Godot_v4.4.1-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version
+      - name: Import project and parse all scripts
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --editor --path . --quit 2>&1 | tee import.log
+          if grep -E "SCRIPT ERROR|Parse Error|Failed loading resource|Could not open file" import.log; then
+            echo "Godot reported an import or parse error."
+            exit 1
+          fi
+      - name: Run gameplay smoke test with diagnostics
+        shell: bash
+        run: |
+          set -o pipefail
+          timeout --signal=TERM --kill-after=5s 45s godot --verbose --headless --audio-driver Dummy --path . --script res://tests/gameplay_smoke_test.gd 2>&1 | tee gameplay-test.log
+          if grep -E "SCRIPT ERROR|Parse Error|FAIL:|ObjectDB instances leaked at exit|resources still in use at exit" gameplay-test.log; then
+            echo "Gameplay regression test reported an error."
+            exit 1
+          fi
+      - name: Launch main scene for runtime smoke test
+        shell: bash
+        run: |
+          set -o pipefail
+          godot --headless --audio-driver Dummy --path . --quit-after 180 2>&1 | tee runtime.log
+          if grep -E "SCRIPT ERROR|Parse Error|Invalid call|Invalid access to property|Attempt to call function .* on a null instance|Failed loading resource|Could not open file" runtime.log; then
+            echo "Godot reported a runtime error."
+            exit 1
+          fi

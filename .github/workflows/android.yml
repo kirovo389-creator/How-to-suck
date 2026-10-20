@@ -1,13 +1,19 @@
 name: Build Android APK
+
+permissions:
+  contents: write
+
 on:
   push:
-    branches: [main]
+    branches: [main, game-completion]
   workflow_dispatch:
 jobs:
   export:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+      - name: Validate project files
+        run: python3 tools/validate_project.py
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -16,28 +22,116 @@ jobs:
         with:
           packages: ''
       - name: Install Android SDK packages
-        run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+        run: sdkmanager --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-34" "build-tools;34.0.0" "cmdline-tools;latest" "cmake;3.10.2.4988404" "ndk;23.2.8568313"
       - name: Install Godot and export templates
+        shell: bash
         run: |
-          wget -q https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip -O godot.zip
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-all-errors --retry-delay 2 \
+            https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip \
+            --output godot.zip
           unzip -q godot.zip -d godot-bin
           chmod +x godot-bin/Godot_v4.4.1-stable_linux.x86_64
-          sudo mv godot-bin/Godot_v4.4.1-stable_linux.x86_64 /usr/local/bin/godot
-          wget -q https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz -O templates.tpz
-          mkdir -p ~/.local/share/godot/export_templates/4.4.1.stable
+          sudo install -m 0755 godot-bin/Godot_v4.4.1-stable_linux.x86_64 /usr/local/bin/godot
+          curl --fail --location --retry 5 --retry-all-errors --retry-delay 2 \
+            https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz \
+            --output templates.tpz
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.4.1.stable"
           unzip -q templates.tpz -d template-unpack
-          cp -r template-unpack/templates/* ~/.local/share/godot/export_templates/4.4.1.stable/
-      - name: Install Android build template
-        run: godot --headless --editor --path . --quit --install-android-build-template
+          cp -r template-unpack/templates/* "$HOME/.local/share/godot/export_templates/4.4.1.stable/"
+          godot --version
+      - name: Configure Android export paths and debug signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.config/godot" "$RUNNER_TEMP"
+          keytool -genkeypair -noprompt \
+            -keystore "$RUNNER_TEMP/debug.keystore" \
+            -storepass android -keypass android \
+            -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+          cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          EOF
       - name: Import project
         run: godot --headless --editor --path . --quit
-      - name: Export APK
+      - name: Run headless game smoke test
+        shell: bash
         run: |
+          set -o pipefail
+          godot --headless --audio-driver Dummy --path . --quit-after 120 2>&1 | tee game-smoke-test.log
+          if grep -E "SCRIPT ERROR|Parse Error|Invalid call|Invalid access to property|Attempt to call function .* on a null instance|Failed loading resource|Could not open file" game-smoke-test.log; then
+            echo "Godot reported a runtime or script error."
+            exit 1
+          fi
+      - name: Test full gameplay loop
+        run: godot --headless --audio-driver Dummy --path . --script res://tests/gameplay_smoke_test.gd
+      - name: Set Android release version
+        if: github.ref == 'refs/heads/game-completion' && github.event_name == 'push'
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: 0.1.${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          sed -i -E "s#^version/code=.*#version/code=${VERSION_CODE}#" export_presets.cfg
+          sed -i -E "s#^version/name=.*#version/name=\"${VERSION_NAME}\"#" export_presets.cfg
+      - name: Export APK
+        shell: bash
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ runner.temp }}/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
+        run: |
+          set -euo pipefail
           mkdir -p build
+          rm -f build/HowToSuck.apk
           godot --headless --path . --export-debug "Android" build/HowToSuck.apk
+      - name: Verify APK archive and native library
+        run: |
+          python3 - <<'PY'
+          import sys
+          import zipfile
+          from pathlib import Path
+
+          apk = Path("build/HowToSuck.apk")
+          if not apk.is_file() or apk.stat().st_size < 1_000_000:
+              sys.exit("APK is missing or implausibly small.")
+          with zipfile.ZipFile(apk) as archive:
+              damaged = archive.testzip()
+              if damaged:
+                  sys.exit(f"APK contains a corrupt ZIP entry: {damaged}")
+              names = set(archive.namelist())
+          required = {"AndroidManifest.xml", "lib/arm64-v8a/libgodot_android.so"}
+          missing = sorted(required - names)
+          if missing:
+              sys.exit("APK is missing required Android files: " + ", ".join(missing))
+          print(f"APK verified: {apk.stat().st_size:,} bytes, {len(names)} files.")
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: How-to-Suck-Android-APK
           path: build/HowToSuck.apk
           if-no-files-found: error
           retention-days: 14
+      - name: Publish APK in GitHub Releases
+        if: github.ref == 'refs/heads/game-completion' && github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.1.${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          name: How to Suck v0.1.${{ github.run_number }} (Android)
+          body: |
+            Android build of How to Suck.
+
+            The APK is debug-signed for testing. Install it on an Android device with ARM64 support.
+          files: build/HowToSuck.apk
+          draft: false
+          prerelease: false
+          make_latest: true
+          overwrite_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
