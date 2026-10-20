@@ -159,13 +159,13 @@ func _run_tests() -> void:
     main.call("_skip_cutscene")
     _check(not bool(main.get("cutscene_playing")), "opening cinematic can be skipped")
     await process_frame
-    var pause_time_before: float = float(main.get("time_left"))
-    var pause_loot_position := loot[0].global_position
     var tween_probe := Node3D.new()
     tween_probe.name = "PauseTweenProbe"
     world.add_child(tween_probe)
     main.call("_remove_interactable", tween_probe)
     await process_frame
+    var pause_time_before: float = float(main.get("time_left"))
+    var pause_loot_position := loot[0].global_position
     var pause_cameras := get_nodes_in_group("security_cameras")
     var pause_camera_head: Node3D
     var pause_camera_rotation: float = 0.0
