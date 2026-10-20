@@ -93,6 +93,7 @@ require('if paused:\n        return\n    if cutscene_playing:' in game and
         'world.process_mode = Node.PROCESS_MODE_DISABLED' in game and
         'world.process_mode = _world_process_mode_before_pause' in game and
         'music.stream_paused = true' in game and 'music.stream_paused = false' in game and
+        'func _sync_player_processing()' in game and 'not call_active and not cutscene_playing' in game and
         'var tween := target.create_tween()' in game,
         "Pause freezes cinematics, world animation, target-bound tweens and audio, then restores them on resume")
 require('func unlock_exit()' in world and 'set_meta("kind", "exit")' in world,
