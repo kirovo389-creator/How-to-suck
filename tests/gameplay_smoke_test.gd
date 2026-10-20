@@ -39,15 +39,18 @@ func _run_tests() -> void:
     _check(bool(main.get("shift_started")), "shift starts from the intro")
     main.call("_skip_cutscene")
     _check(not bool(main.get("cutscene_playing")), "opening cinematic can be skipped")
+    await process_frame
 
     for item in loot:
         player.global_position = item.global_position
         main.call("_on_action_pressed")
+        await process_frame
     _check(int(main.get("loot_found")) == 5, "all five valuables can be collected")
 
     for item in dirt:
         player.global_position = item.global_position
         main.call("_on_action_pressed")
+        await process_frame
     _check(int(main.get("dirt_remaining")) == 0, "all seven stains can be cleaned")
 
     var exit_target := world.get_node_or_null("ExitInteraction") as Node3D
@@ -56,6 +59,7 @@ func _run_tests() -> void:
         quit(1)
         return
     _check(bool(exit_target.get_meta("unlocked", false)), "exit unlocks when the apartment is clean")
+    await process_frame
     player.global_position = exit_target.global_position
     main.call("_on_action_pressed")
     _check(bool(main.get("ended")), "using the exit finishes the shift")

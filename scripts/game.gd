@@ -169,6 +169,9 @@ func _lighting() -> void:
     add_child(bedroom_light)
 
 func _finish_cutscene() -> void:
+    var follow_camera := world.get_node_or_null("FollowCamera")
+    if is_instance_valid(follow_camera):
+        follow_camera.call("cancel_opening_cutscene")
     cutscene_playing = false
     cutscene_elapsed = 0.0
     player.set_mobile_direction(Vector2.ZERO)

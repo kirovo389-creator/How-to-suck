@@ -28,6 +28,10 @@ func play_opening_cutscene() -> void:
         _cutscene_bedroom = Vector3(7.5, 7.5, -4.2)
     _cutscene_active = true
 
+func cancel_opening_cutscene() -> void:
+    _cutscene_active = false
+    _cutscene_elapsed = 0.0
+
 func _process(delta: float) -> void:
     if not is_instance_valid(target):
         target = _find_target()
