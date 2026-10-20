@@ -155,6 +155,11 @@ func _run_tests() -> void:
     await process_frame
     var pause_time_before: float = float(main.get("time_left"))
     var pause_loot_position := loot[0].global_position
+    var tween_probe := Node3D.new()
+    tween_probe.name = "PauseTweenProbe"
+    world.add_child(tween_probe)
+    main.call("_remove_interactable", tween_probe)
+    await process_frame
     var pause_cameras := get_nodes_in_group("security_cameras")
     var pause_camera_head: Node3D
     var pause_camera_rotation: float = 0.0
@@ -162,18 +167,23 @@ func _run_tests() -> void:
         pause_camera_head = (pause_cameras[0] as Node3D).get("_head") as Node3D
         pause_camera_rotation = pause_camera_head.rotation.y
     main.call("_toggle_pause")
+    var probe_scale_at_pause := tween_probe.scale
     _check(bool(main.get("paused")), "pause freezes the shift")
     _check((world.process_mode == Node.PROCESS_MODE_DISABLED), "pause disables the 3D world process tree")
     _check(bool((main.get("music") as AudioStreamPlayer).stream_paused), "pause suspends ambient audio")
     await create_timer(0.3).timeout
     _check(is_equal_approx(float(main.get("time_left")), pause_time_before), "mission timer remains frozen while paused")
     _check(loot[0].global_position.distance_to(pause_loot_position) < 0.001, "collectible bobbing stops while paused")
+    _check(is_instance_valid(tween_probe) and tween_probe.scale.distance_to(probe_scale_at_pause) < 0.001,
+        "interaction shrink animation stops while paused")
     if is_instance_valid(pause_camera_head):
         _check(is_equal_approx(pause_camera_head.rotation.y, pause_camera_rotation), "security camera sweep stops while paused")
     main.call("_resume_game")
     _check(not bool(main.get("paused")), "resume restores the shift")
     _check(world.process_mode != Node.PROCESS_MODE_DISABLED, "resume restores world processing")
     _check(not bool((main.get("music") as AudioStreamPlayer).stream_paused), "resume restores ambient audio")
+    await create_timer(0.25).timeout
+    _check(not is_instance_valid(tween_probe), "interaction shrink animation resumes after unpausing")
 
     player.global_position = exit_target.global_position
     main.call("_on_action_pressed")

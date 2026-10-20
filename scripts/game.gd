@@ -323,7 +323,7 @@ func _on_action_pressed() -> void:
 func _remove_interactable(target: Node3D) -> void:
     # Remove immediately from interaction queries, then play a short shrink animation.
     target.remove_from_group("interactable")
-    var tween := create_tween()
+    var tween := target.create_tween()
     tween.tween_property(target, "scale", Vector3(0.04, 0.04, 0.04), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
     tween.tween_callback(target.queue_free)
 
