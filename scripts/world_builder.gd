@@ -95,7 +95,7 @@ func _build_room() -> void:
     # Floor zones use non-colliding inlays; the walls remain open enough for mobile navigation.
     _box("Kitchen tile", Vector3(-6.8, 0.012, -5.8), Vector3(9.8, 0.04, 8.0), Color(0.31, 0.37, 0.38), false)
     _box("Living room rug", Vector3(2.0, 0.025, 1.55), Vector3(7.2, 0.05, 5.4), Color(0.22, 0.105, 0.13), false)
-    _box("Bedroom carpet", Vector3(7.2, 0.025, -5.2), Vector3(7.2, 0.05, 7.0), Color(0.22, 0.21, 0.29), false)
+    _box("Bedroom carpet", Vector3(7.2, 0.025, -6.0), Vector3(7.2, 0.05, 7.0), Color(0.22, 0.21, 0.29), false)
     _box("Bathroom tile", Vector3(-8.0, 0.018, 5.6), Vector3(6.5, 0.05, 6.0), Color(0.28, 0.36, 0.38), false)
     # Window: blue panes, metal bars and a sill.
     _box("Window glass", Vector3(-4.0, 2.45, -9.79), Vector3(3.8, 1.65, 0.045), Color(0.075, 0.24, 0.38), false)
@@ -155,12 +155,12 @@ func _build_furniture() -> void:
     _box("TV screen frame", Vector3(2.0, 1.38, -1.32), Vector3(2.4, 1.42, 0.16), Color(0.035, 0.045, 0.055))
     _box("TV screen", Vector3(2.0, 1.39, -1.225), Vector3(2.18, 1.2, 0.025), Color(0.055, 0.18, 0.24), false)
     # Bedroom furniture and bedside lamp.
-    _box("Bed frame", Vector3(7.4, 0.34, -5.2), Vector3(4.0, 0.42, 4.5), wood)
-    _box("Mattress", Vector3(7.4, 0.64, -5.2), Vector3(3.8, 0.26, 4.3), Color(0.62, 0.66, 0.7), false)
-    _box("Duvet", Vector3(7.4, 0.79, -4.8), Vector3(3.65, 0.12, 3.2), Color(0.35, 0.42, 0.53), false)
-    _box("Bed headboard", Vector3(7.4, 1.0, -7.35), Vector3(4.0, 1.25, 0.18), wood_light)
-    _box("Pillow left", Vector3(6.45, 0.91, -6.75), Vector3(1.2, 0.18, 0.65), Color(0.82, 0.8, 0.72), false)
-    _box("Pillow right", Vector3(8.3, 0.91, -6.75), Vector3(1.2, 0.18, 0.65), Color(0.82, 0.8, 0.72), false)
+    _box("Bed frame", Vector3(7.4, 0.34, -6.1), Vector3(3.4, 0.42, 4.5), wood)
+    _box("Mattress", Vector3(7.4, 0.64, -6.1), Vector3(3.2, 0.26, 4.3), Color(0.62, 0.66, 0.7), false)
+    _box("Duvet", Vector3(7.4, 0.79, -5.7), Vector3(3.05, 0.12, 3.2), Color(0.35, 0.42, 0.53), false)
+    _box("Bed headboard", Vector3(7.4, 1.0, -8.25), Vector3(3.4, 1.25, 0.18), wood_light)
+    _box("Pillow left", Vector3(6.65, 0.91, -7.65), Vector3(1.0, 0.18, 0.65), Color(0.82, 0.8, 0.72), false)
+    _box("Pillow right", Vector3(8.15, 0.91, -7.65), Vector3(1.0, 0.18, 0.65), Color(0.82, 0.8, 0.72), false)
     _box("Wardrobe", Vector3(10.3, 1.45, -8.25), Vector3(2.3, 2.9, 1.1), wood)
     _box("Wardrobe left door", Vector3(9.76, 1.48, -7.68), Vector3(1.02, 2.65, 0.035), wood_light, false)
     _box("Wardrobe right door", Vector3(10.83, 1.48, -7.68), Vector3(1.02, 2.65, 0.035), wood_light, false)
@@ -212,10 +212,10 @@ func _build_decor() -> void:
     add_child(floor_light)
 
 func _build_collectibles() -> void:
-    _item("Золотые часы", "loot", Vector3(-8.0, 1.45, -7.5), Vector3(0.42, 0.12, 0.32), Color(0.98, 0.67, 0.17), 2)
+    _item("Золотые часы", "loot", Vector3(-8.0, 1.45, -7.5), Vector3(0.42, 0.12, 0.32), Color(0.98, 0.67, 0.17))
     _item("Шкатулка", "loot", Vector3(-4.15, 1.05, -2.3), Vector3(0.42, 0.28, 0.36), Color(0.85, 0.2, 0.36))
     _item("Редкая приставка", "loot", Vector3(2.8, 0.9, -1.12), Vector3(0.56, 0.22, 0.34), Color(0.23, 0.73, 0.91))
-    _item("Кольцо с камнем", "loot", Vector3(9.45, 0.86, -3.75), Vector3(0.24, 0.24, 0.24), Color(0.18, 0.95, 0.78), 1)
+    _item("Кольцо с камнем", "loot", Vector3(9.45, 0.86, -3.75), Vector3(0.24, 0.24, 0.24), Color(0.18, 0.95, 0.78), 2)
     _item("Конверт с деньгами", "loot", Vector3(2.0, 0.55, 3.1), Vector3(0.42, 0.055, 0.3), Color(0.26, 0.78, 0.34))
     var stains := [
         Vector3(-8.9, 0.018, -2.2),
