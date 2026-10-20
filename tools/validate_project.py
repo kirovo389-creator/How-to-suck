@@ -33,6 +33,8 @@ workflow = text(".github/workflows/android.yml")
 world = text("scripts/world_builder.gd")
 game = text("scripts/game.gd")
 hud = text("scripts/hud.gd")
+player = text("scripts/player.gd")
+camera = text("scripts/security_camera.gd")
 
 require('config_version=5' in project, "Godot project version is declared")
 require('run/main_scene="res://scenes/main.tscn"' in project, "Main scene points to the shipped scene")
@@ -71,13 +73,11 @@ require('func _toggle_crouch()' in game and 'signal crouch_pressed' in hud and
         'func set_crouching(enabled: bool)' in player and
         'var target_height := 0.42 if bool(target.get("is_crouching")) else 0.82' in camera,
         "Crouching slows movement and lowers the camera detection target")
-player = text("scripts/player.gd")
 require('func play_interaction(kind: String)' in player and
         'func _update_interaction_animation(delta: float)' in player and
         'player.call("play_interaction", "loot")' in game and
         'player.call("play_interaction", "dirt")' in game,
         "Pickup and cleaning use timed character interaction animations")
-camera = text("scripts/security_camera.gd")
 require('func _build_vision_cone()' in camera and 'VisionCone' in camera and
         'BaseMaterial3D.TRANSPARENCY_ALPHA' in camera and
         'Color(1.0, 0.055, 0.035, 0.2)' in camera,
