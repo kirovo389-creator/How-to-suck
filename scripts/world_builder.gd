@@ -6,20 +6,34 @@ var _exit_hinge: Node3D
 var _exit_target: Node3D
 var _exit_unlocked: bool = false
 
+signal build_completed
+
 func _ready() -> void:
+    # Yield between procedural generation stages. This is especially important on
+    # Android, where building every mesh in one frame can leave a black screen.
     if level_id == "store":
         _build_store_room()
+        await get_tree().process_frame
         _build_store_furniture()
+        await get_tree().process_frame
         _build_store_decor()
     else:
         _build_room()
+        await get_tree().process_frame
         _build_partitions()
+        await get_tree().process_frame
         _build_furniture()
+        await get_tree().process_frame
         _build_decor()
+    await get_tree().process_frame
     _build_collectibles()
+    await get_tree().process_frame
     _build_exit()
+    await get_tree().process_frame
     _build_security_cameras()
+    await get_tree().process_frame
     _build_camera()
+    build_completed.emit()
 
 func unlock_exit() -> void:
     if _exit_unlocked:
