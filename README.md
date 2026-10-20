@@ -10,20 +10,21 @@ Choose one of two locations from the start screen: a furnished apartment or a la
 2. Once the valuables are collected, clean all seven dirt stains.
 3. Reach the front door and leave before the four-minute shift ends.
 
-Security cameras sweep the rooms. Spending too long in a camera's field of view raises the alert meter; moving out of sight lets it cool down. The owners call after movement is detected or enough time has passed. Answering lowers suspicion and adds a small time bonus, while ignoring or declining the call raises suspicion. Maximum alert or an expired timer ends the shift.
+Security cameras sweep the rooms and project a visible field of view onto the floor. The projection turns red when a camera sees you. Crouch to move more slowly and lower your detection point; use walls, furniture and timing to leave the camera's view so the alert meter can cool down. The owners call after movement is detected or enough time has passed. Answering lowers suspicion and adds a small time bonus, while ignoring or declining the call raises suspicion. Maximum alert or an expired timer ends the shift.
 
 ## Controls
 
 - Touch joystick: walk around the selected location.
 - Action button: collect a valuable, clean a stain, or use the exit.
-- Pause: resume or restart the shift.
+- Crouch button: move more slowly and reduce your visible height; tap again to stand.
+- Pause: freeze the world and audio, then resume or restart the shift.
 - Movement also supports the keyboard arrow keys for desktop testing.
 
 ## Included content
 
 - Two distinct 3D locations: a furnished apartment and a night shop with shelf aisles, checkout, coolers and a staff desk.
 - The apartment has a kitchen, living room, bedroom, bathroom, window, props and lighting.
-- Animated cleaner character with pickup/cleaning actions, third-person follow camera, sweeping security cameras and visible floor detection zones that turn red when spotted.
+- Animated cleaner character with pickup/cleaning actions and crouch stealth, third-person follow camera, sweeping security cameras and visible floor detection zones that turn red when spotted.
 - Touch-first HUD, mission stages, countdown, camera-alert meter, phone-call choice, pause/restart and win/lose panels.
 - Original apartment ambience, a separate night-market ambience, and gameplay sound effects.
 - Cool fluorescent lighting in the shop aisles and a warmer pool of light at the checkout.
