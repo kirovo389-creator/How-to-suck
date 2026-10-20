@@ -16,7 +16,8 @@ func _ready() -> void:
 
 func unlock_exit() -> void:
     if is_instance_valid(_exit_hinge):
-        _exit_hinge.rotation.y = deg_to_rad(-98.0)
+        var tween := create_tween()
+        tween.tween_property(_exit_hinge, "rotation:y", deg_to_rad(-98.0), 0.62).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
     if is_instance_valid(_exit_target):
         _exit_target.set_meta("unlocked", true)
 
@@ -25,6 +26,8 @@ func _material(color: Color, roughness: float = 0.82, metalness: float = 0.0, gl
     material.albedo_color = color
     material.roughness = roughness
     material.metallic = metalness
+    if color.a < 0.99:
+        material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
     if glow:
         material.emission_enabled = true
         material.emission = color

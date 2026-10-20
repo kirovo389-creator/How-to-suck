@@ -80,21 +80,21 @@ func _process(delta: float) -> void:
         return
     time_left -= delta
     call_elapsed += delta
-    _camera_scan_elapsed += delta
-    if _camera_scan_elapsed >= 0.12:
-        _camera_scan_elapsed = 0.0
-        _scan_security_cameras()
-    if _camera_visible:
-        alert_level = minf(100.0, alert_level + (12.0 + float(loot_found) * 1.6) * delta)
-    else:
-        alert_level = maxf(0.0, alert_level - 8.0 * delta)
-    if alert_level >= 32.0 and not _camera_warning_shown:
-        _camera_warning_shown = true
-        hud.toast("КАМЕРА ЗАМЕТИЛА ДВИЖЕНИЕ — СКРОЙСЯ!")
-        _play_sound("alert")
-    if alert_level >= 100.0:
-        _finish(false, "СИГНАЛИЗАЦИЯ", "Тревога достигла максимума. Хозяева уже вызвали охрану.")
-        return
+    # A phone dialogue locks movement and its overlay covers the joystick, so do not
+    # punish the player for being unable to walk out of a camera's view during a call.
+    if not call_active:
+        _camera_scan_elapsed += delta
+        if _camera_scan_elapsed >= 0.12:
+            _camera_scan_elapsed = 0.0
+            _scan_security_cameras()
+        if _camera_visible:
+            alert_level = minf(100.0, alert_level + (12.0 + float(loot_found) * 1.6) * delta)
+        else:
+            alert_level = maxf(0.0, alert_level - 8.0 * delta)
+        if alert_level >= 32.0 and not _camera_warning_shown:
+            _camera_warning_shown = true
+            hud.toast("КАМЕРА ЗАМЕТИЛА ДВИЖЕНИЕ — СКРОЙСЯ!")
+            _play_sound("alert")
     if not call_shown and (call_elapsed >= 62.0 or alert_level >= 42.0):
         call_shown = true
         call_active = true
@@ -110,6 +110,9 @@ func _process(delta: float) -> void:
             alert_level = minf(100.0, alert_level + 22.0)
             hud.toast("Звонок пропущен. Хозяева ускорили возвращение.")
             _play_sound("alert")
+    if alert_level >= 100.0:
+        _finish(false, "СИГНАЛИЗАЦИЯ", "Тревога достигла максимума. Хозяева уже вызвали охрану.")
+        return
     if time_left <= 0.0:
         _finish(false, "ВРЕМЯ ВЫШЛО", "Ты не успел закончить смену до возвращения хозяев.")
         return
@@ -219,7 +222,7 @@ func _on_action_pressed() -> void:
     var kind: String = str(target.get_meta("kind", ""))
     if kind == "loot":
         var label := str(target.get_meta("label", "Ценность"))
-        target.queue_free()
+        _remove_interactable(target)
         loot_found += 1
         hud.toast("%s — найдено %d из %d" % [label, loot_found, loot_total])
         _play_sound("pickup")
@@ -231,7 +234,7 @@ func _on_action_pressed() -> void:
             hud.toast("Сначала найди все 5 ценностей. Уборка — последний этап.")
             _play_sound("click")
             return
-        target.queue_free()
+        _remove_interactable(target)
         dirt_remaining -= 1
         hud.toast("Пятно убрано. Осталось: %d" % dirt_remaining)
         _play_sound("clean")
@@ -249,6 +252,13 @@ func _on_action_pressed() -> void:
             return
         _finish(true, "СМЕНА ЗАВЕРШЕНА", "Ты забрал ценности, убрал квартиру и ушёл до возвращения хозяев.")
     _refresh_action_hint()
+
+func _remove_interactable(target: Node3D) -> void:
+    # Remove immediately from interaction queries, then play a short shrink animation.
+    target.remove_from_group("interactable")
+    var tween := create_tween()
+    tween.tween_property(target, "scale", Vector3(0.04, 0.04, 0.04), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+    tween.tween_callback(target.queue_free)
 
 func _nearest_interactable() -> Node3D:
     var best: Node3D

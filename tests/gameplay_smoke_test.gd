@@ -21,6 +21,27 @@ func _run_tests() -> void:
         return
     _check(world.get_node_or_null("FollowCamera") is Camera3D, "follow camera exists")
 
+    var hud := main.get("hud") as CanvasLayer
+    main.set("time_left", 180.0)
+    main.set("alert_level", 30.0)
+    main.set("call_active", true)
+    hud.call("show_call", "Тест звонка")
+    main.call("_answer_call")
+    _check(not bool(main.get("call_active")), "answering the phone closes the call")
+    _check(int(main.get("time_left")) == 188, "answering the phone grants the time bonus")
+    _check(int(main.get("alert_level")) == 6, "answering the phone lowers suspicion")
+    main.set("call_active", true)
+    main.set("alert_level", 12.0)
+    hud.call("show_call", "Тест звонка")
+    main.call("_decline_call")
+    _check(not bool(main.get("call_active")), "declining the phone closes the call")
+    _check(int(main.get("alert_level")) == 30, "declining the phone raises suspicion")
+    var player_start := player.global_position
+    player.set_mobile_direction(Vector2.RIGHT)
+    await physics_frame
+    player.set_mobile_direction(Vector2.ZERO)
+    _check(player.global_position.x > player_start.x, "virtual joystick moves the player")
+
     var loot: Array[Node3D] = []
     var dirt: Array[Node3D] = []
     for candidate in get_nodes_in_group("interactable"):
