@@ -53,11 +53,11 @@ func _make_character() -> void:
     _box(torso, Vector3(0.0, 0.0, 0.0), Vector3(0.61, 0.66, 0.36), jacket)
     _box(torso, Vector3(0.0, 0.02, 0.19), Vector3(0.22, 0.52, 0.035), Color(0.73, 0.7, 0.61))
     _box(torso, Vector3(0.0, -0.31, 0.0), Vector3(0.64, 0.13, 0.39), pants)
-    _sphere(Vector3(0.0, 1.59, 0.0), Vector3(0.235, 0.255, 0.22), skin)
-    _sphere(Vector3(0.0, 1.75, -0.015), Vector3(0.245, 0.12, 0.235), Color(0.13, 0.095, 0.07))
-    _sphere(Vector3(-0.09, 1.79, 0.025), Vector3(0.12, 0.075, 0.15), Color(0.13, 0.095, 0.07))
+    _sphere(self, Vector3(0.0, 1.59, 0.0), Vector3(0.235, 0.255, 0.22), skin)
+    _sphere(self, Vector3(0.0, 1.75, -0.015), Vector3(0.245, 0.12, 0.235), Color(0.13, 0.095, 0.07))
+    _sphere(self, Vector3(-0.09, 1.79, 0.025), Vector3(0.12, 0.075, 0.15), Color(0.13, 0.095, 0.07))
     for x in [-0.075, 0.075]:
-        _sphere(Vector3(x, 1.61, 0.205), Vector3(0.022, 0.019, 0.014), Color(0.025, 0.025, 0.03))
+        _sphere(self, Vector3(x, 1.61, 0.205), Vector3(0.022, 0.019, 0.014), Color(0.025, 0.025, 0.03))
     for index in range(2):
         var side := -1.0 if index == 0 else 1.0
         var hip := Node3D.new()
@@ -96,7 +96,7 @@ func _box(parent: Node3D, position: Vector3, size: Vector3, color: Color) -> Mes
     parent.add_child(node)
     return node
 
-func _sphere(position: Vector3, scale_value: Vector3, color: Color) -> MeshInstance3D:
+func _sphere(parent: Node3D, position: Vector3, scale_value: Vector3, color: Color) -> MeshInstance3D:
     var node := MeshInstance3D.new()
     var mesh := SphereMesh.new()
     mesh.radius = 0.5
@@ -105,7 +105,7 @@ func _sphere(position: Vector3, scale_value: Vector3, color: Color) -> MeshInsta
     node.position = position
     node.scale = scale_value
     node.material_override = _material(color)
-    add_child(node)
+    parent.add_child(node)
     return node
 
 func _material(color: Color) -> StandardMaterial3D:

@@ -116,6 +116,9 @@ func _run_tests() -> void:
     main.set("_camera_scan_elapsed", 0.0)
     main.call("_process", 1.0)
     _check(bool(main.get("ended")), "running out of time ends the shift")
+    _check(bool(main.get("_ending_cutscene_active")), "owners return after a failed shift")
+    main.call("_skip_cutscene")
+    _check(not bool(main.get("_ending_cutscene_active")), "return cutscene can be skipped")
 
     main.set("ended", false)
     main.set("time_left", 120.0)
