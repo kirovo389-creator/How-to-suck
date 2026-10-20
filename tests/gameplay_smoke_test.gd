@@ -34,6 +34,24 @@ func _run_tests() -> void:
     var background_music := main.get("music") as AudioStreamPlayer
     _check(background_music.stream == load("res://audio/store_ambience.wav"), "shop uses its own ambient sound")
     _check(world.get_node_or_null("AisleLight0") is OmniLight3D, "shop has dedicated aisle lighting")
+    var security_cameras := get_nodes_in_group("security_cameras")
+    _check(security_cameras.size() == 3, "shop has three active security cameras")
+    if not security_cameras.is_empty():
+        var first_camera := security_cameras[0] as Node3D
+        var vision_cone := first_camera.get_node_or_null("CameraHead/VisionCone") as MeshInstance3D
+        # VisionCone is parented to the moving head, so its footprint follows the sweep.
+        if not is_instance_valid(vision_cone):
+            vision_cone = first_camera.find_child("VisionCone", true, false) as MeshInstance3D
+        _check(is_instance_valid(vision_cone), "security camera shows a floor field-of-view")
+        var vision_material := first_camera.get("_vision_material") as StandardMaterial3D
+        _check(is_instance_valid(vision_material), "camera vision indicator has a mobile-friendly material")
+        if is_instance_valid(vision_material):
+            first_camera.call("set_alert_active", true)
+            _check(vision_material.albedo_color.r > 0.8 and vision_material.albedo_color.g < 0.2,
+                "camera vision field turns red when detecting the player")
+            first_camera.call("set_alert_active", false)
+            _check(vision_material.albedo_color.b > 0.7 and vision_material.albedo_color.r < 0.3,
+                "camera vision field returns to blue when safe")
     _check(_count_kind("loot") == 5, "shop level has five valuables")
     _check(_count_kind("dirt") == 7, "shop level has seven spills")
     # Complete an entire shop shift first, not just a resource-count check.
