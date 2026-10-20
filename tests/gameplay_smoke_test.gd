@@ -164,7 +164,7 @@ func _run_tests() -> void:
     _check(float(player.get("move_speed")) < 4.0, "crouch mode reduces movement speed")
     _check(is_equal_approx(float((player.get_node("CharacterVisual") as Node3D).scale.y), 0.72),
         "crouch lowers the character visuals")
-    var player_collider := player.get_node("CollisionShape3D") as CollisionShape3D
+    var player_collider := player.get_node("PlayerCollider") as CollisionShape3D
     _check(is_equal_approx((player_collider.shape as CapsuleShape3D).height, 1.12),
         "crouch lowers the physical collision capsule")
     main.call("_toggle_crouch")
