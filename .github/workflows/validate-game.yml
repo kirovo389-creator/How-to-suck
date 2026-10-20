@@ -1,6 +1,7 @@
 name: Validate Godot Game (no APK build)
 
 on:
+  workflow_dispatch:
   push:
     branches: [game-completion]
   pull_request:

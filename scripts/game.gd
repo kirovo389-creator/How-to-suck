@@ -175,7 +175,7 @@ func _lighting() -> void:
     add_child(bedroom_light)
 
 func _finish_cutscene() -> void:
-    var follow_camera := world.get_node_or_null("FollowCamera")
+    var follow_camera: Node = world.get_node_or_null("FollowCamera")
     if is_instance_valid(follow_camera):
         follow_camera.call("cancel_opening_cutscene")
     cutscene_playing = false
@@ -212,7 +212,7 @@ func _on_action_pressed() -> void:
         player.set_physics_process(false)
         hud.hide_intro()
         hud.show_cutscene("01:13 — Хозяева уехали. У тебя четыре минуты: забери ценности, убери следы и выйди до их возвращения.")
-        var follow_camera := world.get_node_or_null("FollowCamera")
+        var follow_camera: Node = world.get_node_or_null("FollowCamera")
         if is_instance_valid(follow_camera):
             follow_camera.call("play_opening_cutscene")
         _play_sound("click")
@@ -270,7 +270,7 @@ func _nearest_interactable() -> Node3D:
         if not is_instance_valid(candidate) or not candidate is Node3D:
             continue
         var item := candidate as Node3D
-        var distance := player.global_position.distance_to(item.global_position)
+        var distance: float = player.global_position.distance_to(item.global_position)
         if distance < best_distance:
             best = item
             best_distance = distance

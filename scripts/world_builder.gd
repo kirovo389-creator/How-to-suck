@@ -188,6 +188,7 @@ func _build_furniture() -> void:
     _box("Folded towels", Vector3(-6.9, 1.55, 4.0), Vector3(0.58, 0.15, 0.42), Color(0.78, 0.82, 0.78), false)
 
 func _build_decor() -> void:
+    var wood_light := Color(0.43, 0.26, 0.16)
     # Framed artwork on the main walls.
     _box("Living painting frame", Vector3(6.2, 2.05, 9.78), Vector3(1.8, 1.2, 0.09), Color(0.42, 0.29, 0.18), false)
     _box("Living painting", Vector3(6.2, 2.05, 9.71), Vector3(1.58, 0.98, 0.025), Color(0.09, 0.31, 0.36), false)

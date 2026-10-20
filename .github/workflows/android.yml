@@ -21,11 +21,11 @@ jobs:
         run: sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
       - name: Install Godot and export templates
         run: |
-          wget -q https://github.com/godotengine/godot-builds/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip -O godot.zip
+          wget -q https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip -O godot.zip
           unzip -q godot.zip -d godot-bin
           chmod +x godot-bin/Godot_v4.4.1-stable_linux.x86_64
           sudo mv godot-bin/Godot_v4.4.1-stable_linux.x86_64 /usr/local/bin/godot
-          wget -q https://github.com/godotengine/godot-builds/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz -O templates.tpz
+          wget -q https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz -O templates.tpz
           mkdir -p ~/.local/share/godot/export_templates/4.4.1.stable
           unzip -q templates.tpz -d template-unpack
           cp -r template-unpack/templates/* ~/.local/share/godot/export_templates/4.4.1.stable/
