@@ -185,8 +185,10 @@ func _run_tests() -> void:
     _check(is_equal_approx(float(main.get("cutscene_elapsed")), cinematic_time_before_pause),
         "pause freezes the opening cinematic")
     main.call("_resume_game")
+    _check(not player.is_physics_processing(), "resume during opening cinematic keeps player controls locked")
     main.call("_skip_cutscene")
     _check(not bool(main.get("cutscene_playing")), "opening cinematic can be skipped")
+    _check(player.is_physics_processing(), "player controls unlock after opening cinematic")
     main.call("_toggle_crouch")
     await process_frame
     _check(bool(player.get("is_crouching")), "crouch mode can be enabled")
