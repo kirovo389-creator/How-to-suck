@@ -81,6 +81,17 @@ func _ready() -> void:
     hud.show_intro()
     _refresh_status()
 
+func _exit_tree() -> void:
+    _stop_audio()
+
+func _stop_audio() -> void:
+    if is_instance_valid(music):
+        music.stop()
+        music.stream = null
+    if is_instance_valid(sfx):
+        sfx.stop()
+        sfx.stream = null
+
 func _select_level(selected_level: String) -> void:
     if shift_started or ended:
         return
