@@ -53,5 +53,5 @@ func _process(delta: float) -> void:
 func _find_target() -> Node3D:
     var scene := get_tree().current_scene
     if is_instance_valid(scene):
-        return scene.get_node_or_null("Player")
+        return scene.get_node_or_null("Player") as Node3D
     return null

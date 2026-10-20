@@ -8,12 +8,10 @@ extends Node3D
 var _head: Node3D
 var _lens_light: OmniLight3D
 var _phase: float = 0.0
-var _base_yaw: float = 0.0
 
 func _ready() -> void:
     add_to_group("security_cameras")
     _phase = float(get_instance_id() % 997) / 997.0 * TAU
-    _base_yaw = rotation.y
     _build_model()
 
 func _process(_delta: float) -> void:

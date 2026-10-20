@@ -12,9 +12,9 @@ const SOUND_WIN = preload("res://audio/win.wav")
 const SOUND_LOSE = preload("res://audio/lose.wav")
 const SOUND_CLICK = preload("res://audio/click.wav")
 
-var player: CharacterBody3D
-var hud: CanvasLayer
-var world: Node3D
+var player
+var hud
+var world
 var music: AudioStreamPlayer
 var sfx: AudioStreamPlayer
 var loot_found: int = 0
@@ -183,11 +183,11 @@ func _skip_cutscene() -> void:
 
 func _scan_security_cameras() -> void:
     _camera_visible = false
-    for camera in get_tree().get_nodes_in_group("security_cameras"):
-        if not is_instance_valid(camera):
+    for candidate in get_tree().get_nodes_in_group("security_cameras"):
+        if not is_instance_valid(candidate):
             continue
-        var can_see := camera.can_see(player)
-        camera.set_alert_active(can_see)
+        var can_see: bool = bool(candidate.call("can_see", player))
+        candidate.call("set_alert_active", can_see)
         if can_see:
             _camera_visible = true
 
@@ -249,9 +249,10 @@ func _on_action_pressed() -> void:
 func _nearest_interactable() -> Node3D:
     var best: Node3D
     var best_distance: float = 2.45
-    for item in get_tree().get_nodes_in_group("interactable"):
-        if not is_instance_valid(item):
+    for candidate in get_tree().get_nodes_in_group("interactable"):
+        if not is_instance_valid(candidate) or not candidate is Node3D:
             continue
+        var item := candidate as Node3D
         var distance := player.global_position.distance_to(item.global_position)
         if distance < best_distance:
             best = item
