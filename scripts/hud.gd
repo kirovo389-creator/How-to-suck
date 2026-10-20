@@ -7,6 +7,7 @@ signal call_declined
 signal pause_pressed
 signal resume_pressed
 signal restart_pressed
+signal cutscene_skipped
 
 var _root: Control
 var _status_label: Label
@@ -28,6 +29,9 @@ var _intro_overlay: ColorRect
 var _call_overlay: ColorRect
 var _pause_overlay: ColorRect
 var _ending_overlay: ColorRect
+var _cutscene_overlay: ColorRect
+var _cutscene_panel: PanelContainer
+var _cutscene_label: Label
 var _ending_heading: Label
 var _ending_body: Label
 
@@ -45,6 +49,9 @@ func _ready() -> void:
     _pause_panel = _build_pause_panel()
     _ending_overlay = _make_overlay("EndingOverlay")
     _ending_panel = _build_ending_panel()
+    _cutscene_overlay = _make_overlay("CutsceneOverlay")
+    _cutscene_overlay.color = Color(0.005, 0.012, 0.025, 0.25)
+    _cutscene_panel = _build_cutscene_panel()
     _hide_all_overlays()
     _intro_panel.show()
     _intro_overlay.show()
@@ -373,6 +380,36 @@ func _build_pause_panel() -> PanelContainer:
     panel.hide()
     return panel
 
+func _build_cutscene_panel() -> PanelContainer:
+    var panel := PanelContainer.new()
+    panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+    panel.offset_left = 210.0
+    panel.offset_top = -150.0
+    panel.offset_right = -210.0
+    panel.offset_bottom = -18.0
+    panel.z_index = 12
+    _style_panel(panel, Color(0.018, 0.032, 0.052, 0.96), Color(0.17, 0.49, 0.57))
+    var row := HBoxContainer.new()
+    row.add_theme_constant_override("separation", 18)
+    panel.add_child(row)
+    _cutscene_label = Label.new()
+    _cutscene_label.text = ""
+    _cutscene_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    _cutscene_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    _cutscene_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    _cutscene_label.add_theme_font_size_override("font_size", 18)
+    _cutscene_label.add_theme_color_override("font_color", Color(0.9, 0.93, 0.95))
+    row.add_child(_cutscene_label)
+    var skip := Button.new()
+    skip.text = "ПРОПУСТИТЬ"
+    skip.custom_minimum_size = Vector2(138.0, 48.0)
+    _style_button(skip, Color(0.1, 0.4, 0.48), Color(0.14, 0.54, 0.61))
+    skip.pressed.connect(func(): cutscene_skipped.emit())
+    row.add_child(skip)
+    _root.add_child(panel)
+    panel.hide()
+    return panel
+
 func _build_ending_panel() -> PanelContainer:
     var panel := PanelContainer.new()
     panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
@@ -447,6 +484,15 @@ func toast(message: String) -> void:
     _toast_label.show()
     _toast_time = 3.2
 
+func show_cutscene(message: String) -> void:
+    _cutscene_label.text = message
+    _cutscene_overlay.show()
+    _cutscene_panel.show()
+
+func hide_cutscene() -> void:
+    _cutscene_overlay.hide()
+    _cutscene_panel.hide()
+
 func show_call(message: String) -> void:
     _call_label.text = message
     _call_overlay.show()
@@ -483,3 +529,5 @@ func _hide_all_overlays() -> void:
     _pause_panel.hide()
     _ending_overlay.hide()
     _ending_panel.hide()
+    _cutscene_overlay.hide()
+    _cutscene_panel.hide()

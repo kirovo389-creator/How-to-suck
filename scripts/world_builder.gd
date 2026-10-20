@@ -12,6 +12,7 @@ func _ready() -> void:
     _build_collectibles()
     _build_exit()
     _build_security_cameras()
+    _build_camera()
 
 func unlock_exit() -> void:
     if is_instance_valid(_exit_hinge):
@@ -322,6 +323,16 @@ func _build_exit() -> void:
     marker.position = Vector3(0.0, 0.03, 8.72)
     marker.material_override = _material(Color(0.2, 0.72, 0.55, 0.65), 0.3, 0.0, true)
     add_child(marker)
+
+func _build_camera() -> void:
+    var camera := Camera3D.new()
+    camera.name = "FollowCamera"
+    camera.position = Vector3(0.0, 10.0, 11.0)
+    camera.rotation_degrees = Vector3(-42.0, 0.0, 0.0)
+    camera.current = true
+    camera.fov = 58.0
+    camera.set_script(load("res://scripts/follow_camera.gd"))
+    add_child(camera)
 
 func _build_security_cameras() -> void:
     var positions := [

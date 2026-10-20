@@ -24,6 +24,8 @@ var time_left: float = 240.0
 var alert_level: float = 0.0
 var shift_started: bool = false
 var paused: bool = false
+var cutscene_playing: bool = false
+var cutscene_elapsed: float = 0.0
 var ended: bool = false
 var call_shown: bool = false
 var call_active: bool = false
@@ -41,11 +43,13 @@ func _ready() -> void:
     add_child(world)
     player = PlayerScene.instantiate()
     player.name = "Player"
-    player.position = Vector3(0.0, 0.0, 7.0)
+    player.position = Vector3(0.0, 0.0, 2.8)
     add_child(player)
+    player.set_physics_process(false)
     hud = HudScene.instantiate()
     add_child(hud)
     hud.action_pressed.connect(_on_action_pressed)
+    hud.cutscene_skipped.connect(_skip_cutscene)
     hud.movement_changed.connect(player.set_mobile_direction)
     hud.call_answered.connect(_answer_call)
     hud.call_declined.connect(_decline_call)
@@ -67,6 +71,11 @@ func _ready() -> void:
     _refresh_status()
 
 func _process(delta: float) -> void:
+    if cutscene_playing:
+        cutscene_elapsed += delta
+        if cutscene_elapsed >= 4.6:
+            _finish_cutscene()
+        return
     if not shift_started or ended or paused:
         return
     time_left -= delta
@@ -158,6 +167,20 @@ func _lighting() -> void:
     bedroom_light.shadow_enabled = false
     add_child(bedroom_light)
 
+func _finish_cutscene() -> void:
+    cutscene_playing = false
+    cutscene_elapsed = 0.0
+    player.set_mobile_direction(Vector2.ZERO)
+    player.set_physics_process(true)
+    hud.hide_cutscene()
+    hud.toast("Сначала собери 5 ценностей. Затем убери 7 пятен и выйди через дверь.")
+    _refresh_status()
+    _refresh_action_hint()
+
+func _skip_cutscene() -> void:
+    if cutscene_playing:
+        _finish_cutscene()
+
 func _scan_security_cameras() -> void:
     _camera_visible = false
     for camera in get_tree().get_nodes_in_group("security_cameras"):
@@ -169,15 +192,20 @@ func _scan_security_cameras() -> void:
             _camera_visible = true
 
 func _on_action_pressed() -> void:
-    if ended or paused or call_active:
+    if ended or paused or call_active or cutscene_playing:
         return
     if not shift_started:
         shift_started = true
+        cutscene_playing = true
+        cutscene_elapsed = 0.0
+        player.set_mobile_direction(Vector2.ZERO)
+        player.set_physics_process(false)
         hud.hide_intro()
-        hud.toast("Сначала собери 5 ценностей, затем убери 7 пятен и выйди через дверь.")
+        hud.show_cutscene("01:13 — Хозяева уехали. У тебя четыре минуты: забери ценности, убери следы и выйди до их возвращения.")
+        var follow_camera := world.get_node_or_null("FollowCamera")
+        if is_instance_valid(follow_camera):
+            follow_camera.call("play_opening_cutscene")
         _play_sound("click")
-        _refresh_status()
-        _refresh_action_hint()
         return
     var target := _nearest_interactable()
     if target == null:
@@ -204,7 +232,7 @@ func _on_action_pressed() -> void:
         hud.toast("Пятно убрано. Осталось: %d" % dirt_remaining)
         _play_sound("clean")
         if dirt_remaining <= 0:
-            world.unlock_exit()
+            world.call("unlock_exit")
             hud.set_task("Квартира чистая. Доберись до зелёной двери и выйди.")
             hud.toast("Готово! Выход открыт — доберись до двери.")
         _refresh_status()
@@ -280,12 +308,14 @@ func _toggle_pause() -> void:
     else:
         paused = true
         player.set_mobile_direction(Vector2.ZERO)
+        player.set_physics_process(false)
         hud.show_pause(true)
 
 func _resume_game() -> void:
     paused = false
     hud.show_pause(false)
     player.set_mobile_direction(Vector2.ZERO)
+    player.set_physics_process(true)
 
 func _restart_game() -> void:
     get_tree().reload_current_scene()
@@ -295,8 +325,11 @@ func _finish(success: bool, heading: String, message: String) -> void:
         return
     ended = true
     paused = false
+    cutscene_playing = false
     call_active = false
     player.set_mobile_direction(Vector2.ZERO)
+    player.set_physics_process(false)
+    hud.hide_cutscene()
     hud.hide_call()
     hud.show_pause(false)
     hud.show_ending(success, heading, message, int(maxf(0.0, time_left)))

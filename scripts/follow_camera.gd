@@ -1,11 +1,57 @@
 extends Camera3D
-@export var follow_speed := 5.5
+
+@export var follow_speed: float = 5.8
+@export var cutscene_duration: float = 4.6
+
 var target: Node3D
-func _ready():
-    target = get_tree().current_scene.get_node_or_null("Player")
-func _process(delta):
+var _cutscene_active: bool = false
+var _cutscene_elapsed: float = 0.0
+var _cutscene_start: Vector3
+var _cutscene_kitchen: Vector3
+var _cutscene_center: Vector3
+var _cutscene_bedroom: Vector3
+
+func _ready() -> void:
+    target = _find_target()
+
+func play_opening_cutscene() -> void:
+    target = _find_target()
+    _cutscene_elapsed = 0.0
+    _cutscene_start = global_position
+    if is_instance_valid(target):
+        _cutscene_kitchen = target.global_position + Vector3(-8.8, 7.3, 7.0)
+        _cutscene_center = Vector3(0.0, 8.4, -0.8)
+        _cutscene_bedroom = target.global_position + Vector3(7.5, 7.5, -7.0)
+    else:
+        _cutscene_kitchen = Vector3(-8.8, 7.3, 9.8)
+        _cutscene_center = Vector3(0.0, 8.4, -0.8)
+        _cutscene_bedroom = Vector3(7.5, 7.5, -4.2)
+    _cutscene_active = true
+
+func _process(delta: float) -> void:
+    if not is_instance_valid(target):
+        target = _find_target()
     if not is_instance_valid(target):
         return
-    var desired = target.global_position + Vector3(0,10,11)
-    global_position = global_position.lerp(desired,clampf(delta*follow_speed,0,1))
-    look_at(target.global_position+Vector3(0,0.5,0),Vector3.UP)
+    if _cutscene_active:
+        _cutscene_elapsed += delta
+        var progress := clampf(_cutscene_elapsed / cutscene_duration, 0.0, 1.0)
+        if progress < 0.34:
+            global_position = _cutscene_start.lerp(_cutscene_kitchen, smoothstep(0.0, 0.34, progress))
+        elif progress < 0.68:
+            global_position = _cutscene_kitchen.lerp(_cutscene_center, smoothstep(0.34, 0.68, progress))
+        else:
+            global_position = _cutscene_center.lerp(_cutscene_bedroom, smoothstep(0.68, 1.0, progress))
+        look_at(Vector3(0.0, 1.0, -1.0), Vector3.UP)
+        if _cutscene_elapsed >= cutscene_duration:
+            _cutscene_active = false
+        return
+    var desired := target.global_position + Vector3(0.0, 10.0, 11.0)
+    global_position = global_position.lerp(desired, clampf(delta * follow_speed, 0.0, 1.0))
+    look_at(target.global_position + Vector3(0.0, 0.8, 0.0), Vector3.UP)
+
+func _find_target() -> Node3D:
+    var scene := get_tree().current_scene
+    if is_instance_valid(scene):
+        return scene.get_node_or_null("Player")
+    return null
