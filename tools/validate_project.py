@@ -69,6 +69,8 @@ require('loot_total: int = 5' in game and 'dirt_remaining: int = 7' in game,
         "Mission objective counts are defined")
 require('func _scan_security_cameras()' in game and 'alert_level >= 100.0' in game,
         "Security camera detection and alert-loss state exist")
+require('Управляющий ускорил возвращение.' in game and 'Ты успокоил управляющего.' in game,
+        "Shop phone responses refer to the manager instead of apartment owners")
 require('func _toggle_crouch()' in game and 'signal crouch_pressed' in hud and
         'name = "CrouchButton"' in hud and 'func set_crouching(enabled: bool)' in player and
         '_collider.name = "PlayerCollider"' in player and
