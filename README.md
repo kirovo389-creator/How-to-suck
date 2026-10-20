@@ -1,14 +1,34 @@
-# How to Suck — 3D Android game
+# How to Suck — 3D Android stealth game
 
-A stylized 3D stealth-cleaning game made with Godot 4.4.1. The initial playable build has a furnished apartment, third-person character, touch joystick, interaction button, collectible valuables, dirt spots, countdown, and a phone call from the owners.
+A stylized 3D game made in Godot 4.4.1 for Android arm64.
 
-## Gameplay
-1. Start the night shift.
-2. Explore and collect five highlighted valuables.
-3. Clean seven dirt spots using the interaction button.
-4. Answer the owners' call and finish before time runs out.
+## The night shift
 
-## Build
-GitHub Actions exports `build/HowToSuck.apk` and uploads it as the `How-to-Suck-Android-APK` artifact. It runs on pushes to main or manually via Actions → Build Android APK → Run workflow.
+The player is hired to clean an apartment after its owners leave. The job has three stages:
 
-All initial environment assets are generated from 3D meshes and materials in Godot; no external assets are required.
+1. Find all five highlighted valuables scattered around the furnished apartment.
+2. Once the valuables are collected, clean all seven dirt stains.
+3. Reach the front door and leave before the four-minute shift ends.
+
+Security cameras sweep the rooms. Spending too long in a camera's field of view raises the alert meter; moving out of sight lets it cool down. The owners call after movement is detected or enough time has passed. Answering lowers suspicion and adds a small time bonus, while ignoring or declining the call raises suspicion. Maximum alert or an expired timer ends the shift.
+
+## Controls
+
+- Touch joystick: walk around the apartment.
+- Action button: collect a valuable, clean a stain, or use the exit.
+- Pause: resume or restart the shift.
+- Movement also supports the keyboard arrow keys for desktop testing.
+
+## Included content
+
+- Furnished 3D apartment with kitchen, living room, bedroom, bathroom, window, props and lighting.
+- Animated cleaner character, third-person follow camera and animated security cameras.
+- Touch-first HUD, mission stages, countdown, camera-alert meter, phone-call choice, pause/restart and win/lose panels.
+- Original generated ambient music and sound effects.
+- Android landscape export preset and a headless smoke-test step before APK export.
+
+## Android APK
+
+GitHub Actions creates build/HowToSuck.apk and uploads it as the How-to-Suck-Android-APK artifact. The workflow runs on pushes to main or manually from Actions → Build Android APK → Run workflow.
+
+All 3D objects are original meshes built by the project; no third-party art assets are required.

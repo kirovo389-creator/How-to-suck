@@ -86,7 +86,7 @@ func _build_room() -> void:
     _box("Wooden floor", Vector3(0.0, -0.18, 0.0), Vector3(24.0, 0.35, 20.0), Color(0.25, 0.17, 0.125))
     # Outer walls leave clear openings for a wide window and the front exit.
     _box("Back wall west", Vector3(-9.0, 2.0, -10.0), Vector3(6.0, 4.0, 0.3), Color(0.17, 0.23, 0.3))
-    _box("Back wall east", Vector3(3.0, 2.0, -10.0), Vector3(18.0, 4.0, 0.3), Color(0.17, 0.23, 0.3))
+    _box("Back wall east", Vector3(5.0, 2.0, -10.0), Vector3(14.0, 4.0, 0.3), Color(0.17, 0.23, 0.3))
     _box("Left wall", Vector3(-12.0, 2.0, 0.0), Vector3(0.3, 4.0, 20.0), Color(0.14, 0.2, 0.27))
     _box("Right wall", Vector3(12.0, 2.0, 0.0), Vector3(0.3, 4.0, 20.0), Color(0.14, 0.2, 0.27))
     _box("Front wall west", Vector3(-6.7, 1.8, 10.0), Vector3(10.6, 3.6, 0.3), Color(0.14, 0.2, 0.27))
@@ -106,15 +106,15 @@ func _build_room() -> void:
     # Baseboards and architectural trim.
     _box("Left baseboard", Vector3(-11.78, 0.11, 0.0), Vector3(0.1, 0.22, 19.5), Color(0.38, 0.29, 0.22), false)
     _box("Right baseboard", Vector3(11.78, 0.11, 0.0), Vector3(0.1, 0.22, 19.5), Color(0.38, 0.29, 0.22), false)
-    _box("Back baseboard east", Vector3(3.0, 0.11, -9.78), Vector3(18.0, 0.22, 0.1), Color(0.38, 0.29, 0.22), false)
+    _box("Back baseboard east", Vector3(5.0, 0.11, -9.78), Vector3(14.0, 0.22, 0.1), Color(0.38, 0.29, 0.22), false)
     _box("Back baseboard west", Vector3(-9.0, 0.11, -9.78), Vector3(6.0, 0.22, 0.1), Color(0.38, 0.29, 0.22), false)
 
 func _build_partitions() -> void:
     var plaster := Color(0.22, 0.29, 0.34)
     # Bedroom divider, with a broad passage at the center.
-    _box("Bedroom divider west", Vector3(3.5, 1.45, -1.0), Vector3(3.0, 2.9, 0.22), plaster)
-    _box("Bedroom divider east", Vector3(10.1, 1.45, -1.0), Vector3(3.8, 2.9, 0.22), plaster)
-    _box("Bedroom divider trim", Vector3(3.5, 2.94, -1.0), Vector3(3.1, 0.08, 0.28), Color(0.39, 0.3, 0.24), false)
+    _box("Bedroom divider west", Vector3(3.5, 1.45, -2.4), Vector3(3.0, 2.9, 0.22), plaster)
+    _box("Bedroom divider east", Vector3(10.1, 1.45, -2.4), Vector3(3.8, 2.9, 0.22), plaster)
+    _box("Bedroom divider trim", Vector3(3.5, 2.94, -2.4), Vector3(3.1, 0.08, 0.28), Color(0.39, 0.3, 0.24), false)
     # Short kitchen divider creates separate rooms without trapping the player.
     _box("Kitchen divider north", Vector3(-1.6, 1.25, -7.8), Vector3(0.22, 2.5, 4.0), plaster)
     _box("Kitchen divider south", Vector3(-1.6, 1.25, -1.1), Vector3(0.22, 2.5, 2.4), plaster)
@@ -292,10 +292,16 @@ func _build_exit() -> void:
     _box("Exit frame left", Vector3(-0.72, 1.2, 9.77), Vector3(0.14, 2.4, 0.26), Color(0.45, 0.3, 0.19), false)
     _box("Exit frame right", Vector3(0.72, 1.2, 9.77), Vector3(0.14, 2.4, 0.26), Color(0.45, 0.3, 0.19), false)
     _box("Exit frame top", Vector3(0.0, 2.35, 9.77), Vector3(1.55, 0.14, 0.26), Color(0.45, 0.3, 0.19), false)
-    _exit_hinge = Node3D.new()
+    _exit_hinge = StaticBody3D.new()
     _exit_hinge.name = "ExitDoorHinge"
     _exit_hinge.position = Vector3(-0.62, 0.0, 9.72)
     add_child(_exit_hinge)
+    var door_collision := CollisionShape3D.new()
+    var door_shape := BoxShape3D.new()
+    door_shape.size = Vector3(1.2, 2.25, 0.12)
+    door_collision.shape = door_shape
+    door_collision.position = Vector3(0.62, 1.15, 0.0)
+    _exit_hinge.add_child(door_collision)
     _mesh_box(_exit_hinge, "Exit door", Vector3(0.62, 1.15, 0.0), Vector3(1.2, 2.25, 0.12), Color(0.16, 0.35, 0.39))
     _mesh_box(_exit_hinge, "Door window", Vector3(0.62, 1.52, -0.07), Vector3(0.42, 0.55, 0.025), Color(0.09, 0.22, 0.28), 0.35)
     _sphere(_exit_hinge, "Door handle", Vector3(0.98, 1.0, -0.1), Vector3(0.07, 0.07, 0.07), Color(0.92, 0.68, 0.27), true)
