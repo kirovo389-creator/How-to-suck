@@ -102,6 +102,7 @@ func _run_tests() -> void:
     _check(int(main.get("dirt_remaining")) == 0, "all seven stains can be cleaned")
 
     _check(bool(exit_target.get_meta("unlocked", false)), "exit unlocks when the apartment is clean")
+    await create_timer(0.28).timeout
     await process_frame
     player.global_position = exit_target.global_position
     main.call("_on_action_pressed")
@@ -113,6 +114,11 @@ func _run_tests() -> void:
 
     # Verify loss paths without allowing them to interfere with the full win flow.
     main.set("ended", false)
+    world.set("_exit_unlocked", false)
+    exit_target.set_meta("unlocked", false)
+    var hinge := world.get_node_or_null("ExitDoorHinge") as Node3D
+    if is_instance_valid(hinge):
+        hinge.rotation.y = 0.0
     main.set("call_shown", true)
     main.set("time_left", 0.25)
     main.set("alert_level", 0.0)
@@ -121,6 +127,9 @@ func _run_tests() -> void:
     main.call("_process", 1.0)
     _check(bool(main.get("ended")), "running out of time ends the shift")
     _check(bool(main.get("_ending_cutscene_active")), "owners return after a failed shift")
+    _check(not bool(exit_target.get_meta("unlocked", false)), "failure does not incorrectly open the exit")
+    if is_instance_valid(hinge):
+        _check(absf(hinge.rotation.y) < 0.01, "failure leaves the exit door closed")
     main.call("_skip_cutscene")
     _check(not bool(main.get("_ending_cutscene_active")), "return cutscene can be skipped")
 

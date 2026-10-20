@@ -3,6 +3,7 @@ extends Node3D
 const CameraScene = preload("res://scenes/security_camera.tscn")
 var _exit_hinge: Node3D
 var _exit_target: Node3D
+var _exit_unlocked: bool = false
 
 func _ready() -> void:
     _build_room()
@@ -15,6 +16,9 @@ func _ready() -> void:
     _build_camera()
 
 func unlock_exit() -> void:
+    if _exit_unlocked:
+        return
+    _exit_unlocked = true
     if is_instance_valid(_exit_hinge):
         var tween := create_tween()
         tween.tween_property(_exit_hinge, "rotation:y", deg_to_rad(-98.0), 0.62).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)

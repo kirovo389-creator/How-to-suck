@@ -386,7 +386,6 @@ func _finish(success: bool, heading: String, message: String) -> void:
     _pending_ending_seconds = seconds_left
     _ending_cutscene_active = true
     _ending_cutscene_elapsed = 0.0
-    world.call("unlock_exit")
     var follow_camera: Node = world.get_node_or_null("FollowCamera")
     if success:
         if is_instance_valid(follow_camera):
