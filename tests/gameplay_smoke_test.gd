@@ -213,7 +213,10 @@ func _run_tests() -> void:
     main.call("_process", 0.25)
     _check(float(main.get("stamina")) < stamina_before_sprint, "moving while sprinting drains stamina")
     _check(is_instance_valid(stamina_bar) and is_equal_approx(stamina_bar.value, float(main.get("stamina"))),
-        "stamina bar mirrors gameplay stamina")
+        "stamina bar mirrors gameplay stamina (bar=%.3f, game=%.3f)" % [
+            stamina_bar.value if is_instance_valid(stamina_bar) else -1.0,
+            float(main.get("stamina"))
+        ])
     main.set("stamina", 5.0)
     main.set("_stamina_regen_delay", 0.0)
     main.call("_process", 0.25)
