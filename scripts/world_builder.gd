@@ -135,6 +135,26 @@ func _build_store_furniture() -> void:
         Color(0.28, 0.54, 0.31),
         Color(0.53, 0.35, 0.69)
     ]
+    # Visible fluorescent fixtures and cool pools of light distinguish the store at night.
+    for light_index in range(shelf_positions.size()):
+        var light_x: float = shelf_positions[light_index]
+        _box("Fluorescent fixture %d" % light_index, Vector3(light_x, 3.45, -4.45), Vector3(0.38, 0.085, 5.8), Color(0.64, 0.91, 0.91), false)
+        var aisle_light := OmniLight3D.new()
+        aisle_light.name = "AisleLight%d" % light_index
+        aisle_light.position = Vector3(light_x, 3.15, -4.45)
+        aisle_light.light_color = Color(0.66, 0.87, 0.96)
+        aisle_light.light_energy = 0.46
+        aisle_light.omni_range = 5.2
+        aisle_light.shadow_enabled = false
+        add_child(aisle_light)
+    var checkout_light := OmniLight3D.new()
+    checkout_light.name = "CheckoutLight"
+    checkout_light.position = Vector3(-8.7, 2.7, 4.75)
+    checkout_light.light_color = Color(1.0, 0.75, 0.46)
+    checkout_light.light_energy = 0.42
+    checkout_light.omni_range = 4.4
+    checkout_light.shadow_enabled = false
+    add_child(checkout_light)
     for row in range(shelf_positions.size()):
         var x: float = shelf_positions[row]
         _box("Aisle shelf left upright %d" % row, Vector3(x - 0.56, 0.9, -4.45), Vector3(0.095, 1.8, 6.35), shelf_frame)

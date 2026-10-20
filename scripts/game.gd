@@ -5,6 +5,7 @@ const HudScene = preload("res://scenes/hud.tscn")
 const OwnerScene = preload("res://scenes/owner.tscn")
 const WorldScene = preload("res://scenes/world.tscn")
 const MUSIC_STREAM = preload("res://audio/ambience.wav")
+const STORE_MUSIC_STREAM = preload("res://audio/store_ambience.wav")
 const SOUND_PICKUP = preload("res://audio/pickup.wav")
 const SOUND_CLEAN = preload("res://audio/clean.wav")
 const SOUND_PHONE = preload("res://audio/phone.wav")
@@ -68,7 +69,7 @@ func _ready() -> void:
     hud.restart_pressed.connect(_restart_game)
     music = AudioStreamPlayer.new()
     music.name = "AmbientMusic"
-    music.stream = MUSIC_STREAM
+    music.stream = _music_for_level()
     music.volume_db = -22.0
     add_child(music)
     music.play()
@@ -94,6 +95,12 @@ func _select_level(selected_level: String) -> void:
     world.name = "Store" if level_id == "store" else "Apartment"
     world.set("level_id", level_id)
     add_child(world)
+    if is_instance_valid(music):
+        music.stream = _music_for_level()
+        music.play()
+
+func _music_for_level() -> AudioStream:
+    return STORE_MUSIC_STREAM if level_id == "store" else MUSIC_STREAM
 
 func _process(delta: float) -> void:
     if cutscene_playing:

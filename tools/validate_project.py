@@ -84,7 +84,7 @@ require(not missing, "All literal res:// references resolve" if not missing else
         "Missing resource references: " + ", ".join(missing))
 
 audio_files = sorted((ROOT / "audio").glob("*.wav"))
-require(len(audio_files) == 8, "Eight original WAV sound assets are present")
+require(len(audio_files) == 9, "Nine original WAV sound assets are present")
 for audio_path in audio_files:
     data = audio_path.read_bytes()
     valid = len(data) >= 44 and data[:4] == b"RIFF" and data[8:12] == b"WAVE"
@@ -101,7 +101,7 @@ required_files = [
     "scenes/security_camera.tscn", "scenes/owner.tscn", "scripts/owner.gd", "scripts/player.gd", "scripts/hud.gd",
     "scripts/world_builder.gd", "scripts/follow_camera.gd", "scripts/security_camera.gd",
     "scripts/loot_animation.gd", "tests/gameplay_smoke_test.gd", "assets/title_art.svg", "assets/app_icon.svg",
-    "audio/ambience.wav", "audio/pickup.wav", "audio/clean.wav", "audio/phone.wav",
+    "audio/ambience.wav", "audio/store_ambience.wav", "audio/pickup.wav", "audio/clean.wav", "audio/phone.wav",
     "audio/alert.wav", "audio/win.wav", "audio/lose.wav", "audio/click.wav",
 ]
 for relative_path in required_files:

@@ -31,6 +31,9 @@ func _run_tests() -> void:
     await process_frame
     world = main.get("world") as Node3D
     _check(str(world.get("level_id")) == "store", "intro can switch to the shop level")
+    var background_music := main.get("music") as AudioStreamPlayer
+    _check(background_music.stream == load("res://audio/store_ambience.wav"), "shop uses its own ambient sound")
+    _check(world.get_node_or_null("AisleLight0") is OmniLight3D, "shop has dedicated aisle lighting")
     _check(_count_kind("loot") == 5, "shop level has five valuables")
     _check(_count_kind("dirt") == 7, "shop level has seven spills")
     hud.call("_choose_location", "apartment")
@@ -38,6 +41,7 @@ func _run_tests() -> void:
     world = main.get("world") as Node3D
     exit_target = world.get_node_or_null("ExitInteraction") as Node3D
     _check(str(world.get("level_id")) == "apartment", "intro can switch back to the apartment")
+    _check(background_music.stream == load("res://audio/ambience.wav"), "apartment ambience returns with the apartment")
     _check(_count_kind("loot") == 5 and _count_kind("dirt") == 7, "apartment objectives reload cleanly")
     main.set("time_left", 180.0)
     main.set("alert_level", 30.0)

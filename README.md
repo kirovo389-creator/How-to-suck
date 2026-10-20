@@ -25,7 +25,8 @@ Security cameras sweep the rooms. Spending too long in a camera's field of view 
 - The apartment has a kitchen, living room, bedroom, bathroom, window, props and lighting.
 - Animated cleaner character, third-person follow camera and animated security cameras.
 - Touch-first HUD, mission stages, countdown, camera-alert meter, phone-call choice, pause/restart and win/lose panels.
-- Original generated ambient music and sound effects.
+- Original apartment ambience, a separate night-market ambience, and gameplay sound effects.
+- Cool fluorescent lighting in the shop aisles and a warmer pool of light at the checkout.
 - Android landscape export preset and a headless smoke-test step before APK export.
 
 ## Android APK
