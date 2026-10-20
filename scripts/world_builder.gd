@@ -343,7 +343,7 @@ func _build_security_cameras() -> void:
         Vector3(8.2, 3.0, -9.2)
     ]
     for index in range(positions.size()):
-        var camera: Node3D = CameraScene.instantiate()
+        var camera := CameraScene.instantiate() as Node3D
         camera.name = "SecurityCamera%d" % (index + 1)
         camera.position = positions[index]
         var direction := Vector3(-positions[index].x, 0.0, -positions[index].z)

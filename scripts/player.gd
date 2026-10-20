@@ -1,7 +1,7 @@
 extends CharacterBody3D
 
 @export var move_speed: float = 4.0
-var mobile_direction := Vector2.ZERO
+var mobile_direction: Vector2 = Vector2.ZERO
 var _animation_time: float = 0.0
 var _legs: Array[Node3D] = []
 var _arms: Array[Node3D] = []
